@@ -12,15 +12,16 @@ I wanted to build something easy to jump into and deploy while still only writin
 
 ### Who should use this?
 
-This library is intended for hobbyist developers who want to play with 3D javascript tech to build a game.
+This library is intended for hobbyist developers who want to play with 3D web technologies to build a game.
 
 ### What does this do?
 
 The goal is to give you tools to build simple 3D games. It's basically comprised of:
-User input (game controllers)
-Collision handling, triggers, and rigid body physics via RapierJS
-Game state that can be serialized and sent to a server.
-Rendering via ThreeJS with some capability to handle postprocessing built-in.
+
+- User input (game controllers)
+- Collision handling, triggers, and rigid body physics via RapierJS
+- Game state that can be serialized and sent to a server.
+- Rendering via ThreeJS with some capability to handle postprocessing built-in.
 
 ### Where can I deploy?
 
