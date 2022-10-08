@@ -19,9 +19,9 @@ This library is intended for hobbyist developers who want to play with 3D web te
 The goal is to give you tools to build simple 3D games. It's basically comprised of:
 
 - User input (game controllers)
-- Collision handling, triggers, and rigid body physics via RapierJS
-- Game state that can be serialized and sent to a server.
-- Rendering via ThreeJS with some capability to handle postprocessing built-in.
+- Collision handling, triggers, and rigid body physics via RapierRS (<https://rapier.rs/>)
+- Game state via StateShot that can be serialized and sent to a server. (<https://github.com/gaoding-inc/stateshot>)
+- Rendering via ThreeJS with some capability to handle postprocessing built-in. (<https://threejs.org/>)
 
 ### Where can I deploy?
 
@@ -30,8 +30,6 @@ The easiest way to deploy is via Railway with Vite-TypeScript template: <https:/
 ### Installation
 
 ```yarn add 'pyramid-game-lib'```
-
-```yarn install```
 
 Within the `index.html` file you will need an element to populate the game (in this example a div with an "app" id: `<div id="app"></div>`):
 
