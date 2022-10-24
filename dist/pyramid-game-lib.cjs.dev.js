@@ -534,27 +534,25 @@ function Triggers(stage) {
 class ActorLoader {
   constructor() {
     this.fbxLoader = new FBXLoader.FBXLoader();
+    this.object = null;
+    this.mixer = null;
+    this.actions = [];
+    this.animations = null;
   }
-  /**
-   * load
-   * loads fbx file for animating an actor entity
-   * @param file
-   */
 
-
-  load(file) {
-    console.log(`${file} currently unused`);
+  loadFile(file) {
     return new Promise((resolve, reject) => {
       return this.fbxLoader.load(file, object => {
-        const mixer = new THREE__namespace.AnimationMixer(object);
-        const action = mixer.clipAction(object.animations[0]);
-        action.play();
-        const payload = {
-          object,
-          action,
-          mixer
-        };
-        resolve(payload);
+        if (!this.object) {
+          this.object = object;
+        }
+
+        if (!this.mixer) {
+          this.mixer = new THREE__namespace.AnimationMixer(object);
+        }
+
+        const animation = object.animations[0];
+        resolve(animation);
       }, xhr => {
         console.log(xhr.loaded / xhr.total * 100 + '% loaded');
       }, error => {
@@ -563,15 +561,41 @@ class ActorLoader {
       });
     });
   }
+  /**
+   * load
+   * loads fbx file paths for animating an actor entity
+   * @param files
+   */
+
+
+  async load(files) {
+    const promises = new Array();
+
+    for (let file of files) {
+      promises.push(this.loadFile(file));
+    }
+
+    const animations = await Promise.all(promises);
+    this.animations = animations;
+
+    for (let animation of this.animations) {
+      if (this.mixer) {
+        const action = this.mixer?.clipAction(animation);
+        this.actions.push(action);
+      }
+    }
+
+    return this;
+  }
 
 }
 class Actor extends Entity {
-  animationActions = [];
+  actions = [];
 
   constructor(stage, payload) {
     super(stage, 'player-test');
     const {
-      action,
+      actions,
       mixer,
       object
     } = payload;
@@ -580,10 +604,12 @@ class Actor extends Entity {
     const skinnedMesh = object.children[0];
     let geometry = skinnedMesh.geometry;
     this.collisionCustomGeometry(geometry);
-    this.currentAction = action;
+    this.actions = actions;
+    this.animationIndex = 0;
+    this.currentAction = actions[0];
     this.mixer = mixer;
     this.object = object;
-    this.currentAction.play();
+    this.currentAction?.play();
     this.object.scale.set(1, 1, 1);
     this.body.lockRotations(true, true);
     this.body.setAdditionalMass(100, true);
@@ -596,6 +622,22 @@ class Actor extends Entity {
   move(moveVector) {
     // this.body.applyImpulse(moveVector, true);
     this.body.setLinvel(moveVector, true);
+  }
+
+  animate(animationIndex) {
+    if (this.actions.length === 0) {
+      return;
+    }
+
+    if (this.animationIndex === animationIndex) {
+      return;
+    }
+
+    const previousIndex = this.animationIndex;
+    this.currentAction = this.actions[animationIndex];
+    this.currentAction.play();
+    this.actions[previousIndex].stop();
+    this.animationIndex = animationIndex;
   }
 
   update(delta) {
@@ -618,9 +660,9 @@ class Actor extends Entity {
 
 async function createActor(options, stage) {
   // const position = options?.position || new Vector3(0, 0, 0);
-  const file = options?.files[0] ?? '';
+  const files = options?.files ?? [''];
   const loader = new ActorLoader();
-  const payload = await loader.load(file);
+  const payload = await loader.load(files);
   const actor = new Actor(stage, payload);
   stage.children.set(actor.id, actor); // TODO: condition for player
 
