@@ -10,9 +10,9 @@ export interface ActorOptions extends BaseOptions {
 
 export async function createActor(options: ActorOptions, stage: Stage) {
 	// const position = options?.position || new Vector3(0, 0, 0);
-	const file = options?.files[0] ?? '';
+	const files = options?.files ?? [''];
 	const loader = new ActorLoader();
-	const payload = await loader.load(file);
+	const payload = await loader.load(files);
 	const actor: Actor = new Actor(stage, payload);
 	stage.children.set(actor.id, actor);
 	// TODO: condition for player
