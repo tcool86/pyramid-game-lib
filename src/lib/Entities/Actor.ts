@@ -3,7 +3,7 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { Vector3, Rotation, RigidBodyType } from '@dimforge/rapier3d-compat';
 import Entity from './Entity';
 import Stage from '../Stage';
-import { AnimationClip } from 'three';
+import { AnimationClip, Vector4 } from 'three';
 
 export class ActorLoader {
 	fbxLoader: FBXLoader;
@@ -106,6 +106,30 @@ export default class Actor extends Entity {
 		// this.body.applyImpulse(moveVector, true);
 		this.body.setLinvel(moveVector, true);
 	}
+
+	rotateInDirection(moveVector: Vector3) {
+		let rotate = Math.atan2(-moveVector.x, moveVector.z);
+		this.rotateY(rotate);
+	}
+
+	rotate(rotation: Vector3) {
+		const { x, y, z} = rotation;
+		const euler = new THREE.Euler(x, y, z);
+		this.object.setRotationFromEuler(euler);
+	}
+
+	rotateX(amount: number) {
+		this.rotate(new Vector3(amount, 0, 0));
+	}
+
+	rotateY(amount: number) {
+		this.rotate(new Vector3(0, -amount, 0));
+	}
+
+	rotateZ(amount: number) {
+		this.rotate(new Vector3(0, 0, amount));
+	}
+
 
 	animate(animationIndex: number) {
 		if (this.actions.length === 0) { return; }

@@ -27,6 +27,11 @@ export default class Actor extends Entity {
     mixer: THREE.AnimationMixer;
     constructor(stage: Stage, payload: any);
     move(moveVector: Vector3): void;
+    rotateInDirection(moveVector: Vector3): void;
+    rotate(rotation: Vector3): void;
+    rotateX(amount: number): void;
+    rotateY(amount: number): void;
+    rotateZ(amount: number): void;
     animate(animationIndex: number): void;
     update(delta: number): void;
 }
