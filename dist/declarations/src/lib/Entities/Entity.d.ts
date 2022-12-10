@@ -38,7 +38,7 @@ export default class Entity implements EntityBuilder {
     createDebugMesh(geometry: BufferGeometry, position: Vector3, color?: number): void;
     createBody(position: Vector3): void;
     collisionRectangular(size: Vector3, isSensor?: boolean): void;
-    collisionSpherical(radius: number): void;
+    collisionSpherical(radius: number, isSensor?: boolean): void;
     collisionCustomGeometry(geometry: THREE.BufferGeometry): void;
     collisionStatic(): void;
     setRotation(): void;

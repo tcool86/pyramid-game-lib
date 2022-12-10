@@ -20,6 +20,7 @@ export interface PrimitiveOptions extends BaseOptions {
 	size?: Vector3;
 	radius?: number;
 	position?: Vector3;
+	isSensor?: boolean;
 	x?: number;
 	y?: number;
 	z?: number;
@@ -59,7 +60,7 @@ export function createSphere(options: PrimitiveOptions, stage: Stage) {
 	entity.applyMaterial(texturePath, color, textureSize);
 	entity.sphericalMesh(radius, position);
 	entity.createBody(position);
-	entity.collisionSpherical(radius);
+	entity.collisionSpherical(radius, options?.isSensor);
 	entity.body.setAdditionalMass(0.02, true);
 	entity.body.setAngularDamping(0.1);
 	entity.debugColor = options?.debugColor ?? 0xffffff;

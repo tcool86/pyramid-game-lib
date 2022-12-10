@@ -341,12 +341,12 @@ class Entity {
     world.createCollider(colliderDesc, this.body);
   }
 
-  collisionSpherical(radius) {
+  collisionSpherical(radius, isSensor = false) {
     const {
       world
     } = this.stageRef;
-    let colliderDesc = RAPIER__default["default"].ColliderDesc.ball(radius); // colliderDesc.setSensor(true);
-
+    let colliderDesc = RAPIER__default["default"].ColliderDesc.ball(radius);
+    colliderDesc.setSensor(isSensor);
     world.createCollider(colliderDesc, this.body);
   }
 
@@ -476,7 +476,7 @@ function createSphere(options, stage) {
   entity.applyMaterial(texturePath, color, textureSize);
   entity.sphericalMesh(radius, position);
   entity.createBody(position);
-  entity.collisionSpherical(radius);
+  entity.collisionSpherical(radius, options?.isSensor);
   entity.body.setAdditionalMass(0.02, true);
   entity.body.setAngularDamping(0.1);
   entity.debugColor = options?.debugColor ?? 0xffffff;

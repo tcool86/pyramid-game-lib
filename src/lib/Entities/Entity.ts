@@ -112,10 +112,10 @@ export default class Entity implements EntityBuilder {
 		world.createCollider(colliderDesc, this.body);
 	}
 
-	collisionSpherical(radius: number) {
+	collisionSpherical(radius: number, isSensor: boolean = false) {
 		const { world } = this.stageRef;
 		let colliderDesc = RAPIER.ColliderDesc.ball(radius);
-		// colliderDesc.setSensor(true);
+		colliderDesc.setSensor(isSensor);
 		world.createCollider(colliderDesc, this.body);
 	}
 

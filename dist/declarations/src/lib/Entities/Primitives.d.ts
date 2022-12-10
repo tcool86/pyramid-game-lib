@@ -18,6 +18,7 @@ export interface PrimitiveOptions extends BaseOptions {
     size?: Vector3;
     radius?: number;
     position?: Vector3;
+    isSensor?: boolean;
     x?: number;
     y?: number;
     z?: number;
