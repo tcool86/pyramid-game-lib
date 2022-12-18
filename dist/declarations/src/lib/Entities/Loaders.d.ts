@@ -1,12 +1,6 @@
 import Stage from '../Stage';
-import { Vector3 } from '../Util';
-import { BaseOptions } from './Entity';
-import Actor from './Actor';
-export interface ActorOptions extends BaseOptions {
-    files: Array<string>;
-    position?: Vector3;
-}
-export declare function createActor(options: ActorOptions, stage: Stage): Promise<Actor>;
+import { PyramidActor, ActorOptions } from './Actor';
+export declare function createActor(target: any, stage: Stage): Promise<PyramidActor>;
 export declare function Loaders(stage: Stage): {
-    createActor: (options: ActorOptions) => Promise<Actor>;
+    createActor: (options: ActorOptions) => Promise<PyramidActor>;
 };

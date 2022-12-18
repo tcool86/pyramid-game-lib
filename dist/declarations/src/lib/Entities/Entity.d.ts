@@ -30,6 +30,8 @@ export default class Entity implements EntityBuilder {
     showDebug: boolean;
     stageRef: Stage;
     tag: string;
+    _loop?: Function;
+    _setup?: Function;
     static instanceCounter: number;
     constructor(stage: Stage, tag: string);
     rectangularMesh(size: Vector3, position: Vector3): void;

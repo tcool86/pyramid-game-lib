@@ -402,6 +402,10 @@ class Entity {
         visible: false
       });
     }
+
+    if (this._loop) {
+      this._loop(_delta);
+    }
   }
 
 }
@@ -501,179 +505,6 @@ function Triggers(stage) {
   return {
     createAreaTrigger: options => {
       return createAreaTrigger(options, stage);
-    }
-  };
-}
-
-class ActorLoader {
-  constructor() {
-    this.fbxLoader = new FBXLoader();
-    this.object = null;
-    this.mixer = null;
-    this.actions = [];
-    this.animations = null;
-  }
-
-  loadFile(file) {
-    return new Promise((resolve, reject) => {
-      return this.fbxLoader.load(file, object => {
-        if (!this.object) {
-          this.object = object;
-        }
-
-        if (!this.mixer) {
-          this.mixer = new THREE.AnimationMixer(object);
-        }
-
-        const animation = object.animations[0];
-        resolve(animation);
-      }, xhr => {
-        console.log(xhr.loaded / xhr.total * 100 + '% loaded');
-      }, error => {
-        console.error(error);
-        reject(error);
-      });
-    });
-  }
-  /**
-   * load
-   * loads fbx file paths for animating an actor entity
-   * @param files
-   */
-
-
-  async load(files) {
-    const promises = new Array();
-
-    for (let file of files) {
-      promises.push(this.loadFile(file));
-    }
-
-    const animations = await Promise.all(promises);
-    this.animations = animations;
-
-    for (let animation of this.animations) {
-      if (this.mixer) {
-        const action = this.mixer?.clipAction(animation);
-        this.actions.push(action);
-      }
-    }
-
-    return this;
-  }
-
-}
-class Actor extends Entity {
-  actions = [];
-
-  constructor(stage, payload) {
-    super(stage, 'player-test');
-    const {
-      actions,
-      mixer,
-      object
-    } = payload;
-    const position = object.position;
-    this.createBody(position);
-    const skinnedMesh = object.children[0];
-    let geometry = skinnedMesh.geometry;
-    this.collisionCustomGeometry(geometry);
-    this.actions = actions;
-    this.animationIndex = 0;
-    this.currentAction = actions[0];
-    this.mixer = mixer;
-    this.object = object;
-    this.currentAction?.play();
-    this.object.scale.set(1, 1, 1);
-    this.body.lockRotations(true, true);
-    this.body.setAdditionalMass(100, true);
-    this.body.setBodyType(RigidBodyType.KinematicVelocityBased);
-    stage.scene.add(this.object);
-    this.id = 'test-id';
-    return this;
-  }
-
-  move(moveVector) {
-    // this.body.applyImpulse(moveVector, true);
-    this.body.setLinvel(moveVector, true);
-  }
-
-  rotateInDirection(moveVector) {
-    let rotate = Math.atan2(-moveVector.x, moveVector.z);
-    this.rotateY(rotate);
-  }
-
-  rotate(rotation) {
-    const {
-      x,
-      y,
-      z
-    } = rotation;
-    const euler = new THREE.Euler(x, y, z);
-    this.object.setRotationFromEuler(euler);
-  }
-
-  rotateX(amount) {
-    this.rotate(new Vector3$1(amount, 0, 0));
-  }
-
-  rotateY(amount) {
-    this.rotate(new Vector3$1(0, -amount, 0));
-  }
-
-  rotateZ(amount) {
-    this.rotate(new Vector3$1(0, 0, amount));
-  }
-
-  animate(animationIndex) {
-    if (this.actions.length === 0) {
-      return;
-    }
-
-    if (this.animationIndex === animationIndex) {
-      return;
-    }
-
-    const previousIndex = this.animationIndex;
-    this.currentAction = this.actions[animationIndex];
-    this.currentAction.play();
-    this.actions[previousIndex].stop();
-    this.animationIndex = animationIndex;
-  }
-
-  update(delta) {
-    super.update(delta);
-    const translationVector = this.body.translation();
-    const rotationVector = this.body.rotation();
-    this.object.position.set(translationVector.x, translationVector.y - 1, translationVector.z);
-    this.object.rotation.set(rotationVector.x, rotationVector.y, rotationVector.z);
-
-    if (this.showDebug) {
-      // TODO: this is hacky, will all objects behave this way? Probably not...
-      this.debug?.position.set(this.object.position.x - 2, this.object.position.y - 1, this.object.position.z);
-      this.debug?.rotation.set(this.object.rotation.x, this.object.rotation.y, this.object.rotation.z);
-    }
-
-    this.mixer.update(delta);
-  }
-
-}
-
-async function createActor(options, stage) {
-  // const position = options?.position || new Vector3(0, 0, 0);
-  const files = options?.files ?? [''];
-  const loader = new ActorLoader();
-  const payload = await loader.load(files);
-  const actor = new Actor(stage, payload);
-  stage.children.set(actor.id, actor); // TODO: condition for player
-
-  stage.players.set(actor.id, actor);
-  return actor;
-}
-function Loaders(stage) {
-  return {
-    createActor: async options => {
-      return await createActor(options, stage);
     }
   };
 }
@@ -790,7 +621,202 @@ class Gamepad {
 
 }
 
-class Game {
+class ActorLoader {
+  constructor() {
+    this.fbxLoader = new FBXLoader();
+    this.object = null;
+    this.mixer = null;
+    this.actions = [];
+    this.animations = null;
+  }
+
+  loadFile(file) {
+    return new Promise((resolve, reject) => {
+      return this.fbxLoader.load(file, object => {
+        if (!this.object) {
+          this.object = object;
+        }
+
+        if (!this.mixer) {
+          this.mixer = new THREE.AnimationMixer(object);
+        }
+
+        const animation = object.animations[0];
+        resolve(animation);
+      }, xhr => {
+        console.log(xhr.loaded / xhr.total * 100 + '% loaded');
+      }, error => {
+        console.error(error);
+        reject(error);
+      });
+    });
+  }
+  /**
+   * load
+   * loads fbx file paths for animating an actor entity
+   * @param files
+   */
+
+
+  async load(files) {
+    const promises = new Array();
+
+    for (let file of files) {
+      promises.push(this.loadFile(file));
+    }
+
+    const animations = await Promise.all(promises);
+    this.animations = animations;
+
+    for (let animation of this.animations) {
+      if (this.mixer) {
+        const action = this.mixer?.clipAction(animation);
+        this.actions.push(action);
+      }
+    }
+
+    return this;
+  }
+
+}
+class PyramidActor extends Entity {
+  actions = [];
+
+  constructor({
+    stage,
+    payload
+  }) {
+    super(stage, 'player-test');
+    const {
+      actions,
+      mixer,
+      object
+    } = payload;
+    const position = object.position;
+    this.createBody(position);
+    const skinnedMesh = object.children[0];
+    let geometry = skinnedMesh.geometry;
+    this.collisionCustomGeometry(geometry);
+    this.actions = actions;
+    this.animationIndex = 0;
+    this.currentAction = actions[0];
+    this.mixer = mixer;
+    this.object = object;
+    this.currentAction?.play();
+    this.object.scale.set(1, 1, 1);
+    this.body.lockRotations(true, true);
+    this.body.setAdditionalMass(100, true);
+    this.body.setBodyType(RigidBodyType.KinematicVelocityBased);
+    stage.scene.add(this.object);
+    this.id = 'test-id';
+    return this;
+  }
+
+  move(moveVector) {
+    // this.body.applyImpulse(moveVector, true);
+    this.body.setLinvel(moveVector, true);
+  }
+
+  rotateInDirection(moveVector) {
+    let rotate = Math.atan2(-moveVector.x, moveVector.z);
+    this.rotateY(rotate);
+  }
+
+  rotate(rotation) {
+    const {
+      x,
+      y,
+      z
+    } = rotation;
+    const euler = new THREE.Euler(x, y, z);
+    this.object.setRotationFromEuler(euler);
+  }
+
+  rotateX(amount) {
+    this.rotate(new Vector3$1(amount, 0, 0));
+  }
+
+  rotateY(amount) {
+    this.rotate(new Vector3$1(0, -amount, 0));
+  }
+
+  rotateZ(amount) {
+    this.rotate(new Vector3$1(0, 0, amount));
+  }
+
+  animate(animationIndex) {
+    if (this.actions.length === 0) {
+      return;
+    }
+
+    if (this.animationIndex === animationIndex) {
+      return;
+    }
+
+    const previousIndex = this.animationIndex;
+    this.currentAction = this.actions[animationIndex];
+    this.currentAction.play();
+    this.actions[previousIndex].stop();
+    this.animationIndex = animationIndex;
+  }
+
+  update(delta) {
+    super.update(delta);
+    const translationVector = this.body.translation();
+    const rotationVector = this.body.rotation();
+    this.object.position.set(translationVector.x, translationVector.y - 1, translationVector.z);
+    this.object.rotation.set(rotationVector.x, rotationVector.y, rotationVector.z);
+
+    if (this.showDebug) {
+      // TODO: this is hacky, will all objects behave this way? Probably not...
+      this.debug?.position.set(this.object.position.x - 2, this.object.position.y - 1, this.object.position.z);
+      this.debug?.rotation.set(this.object.rotation.x, this.object.rotation.y, this.object.rotation.z);
+    }
+
+    this.mixer.update(delta);
+
+    if (this.actorLoop) {
+      this.actorLoop(delta);
+    }
+  }
+
+}
+
+async function createActor(target, stage) {
+  const loader = new ActorLoader();
+  const payload = await loader.load(target.options.files);
+  const actor = new PyramidActor({
+    stage,
+    payload
+  });
+  stage.children.set(actor.id, actor); // TODO: condition for player
+
+  stage.players.set(actor.id, actor);
+  return actor;
+}
+function Loaders(stage) {
+  return {
+    createActor: async options => {
+      return await createActor(options, stage);
+    }
+  };
+}
+
+function Game(app) {
+  return target => {
+    const gameInstance = new target();
+    const pyramidInstance = new PyramidGame({
+      loop: gameInstance.loop.bind(gameInstance),
+      setup: gameInstance.setup.bind(gameInstance)
+    });
+    pyramidInstance.ready.then(() => {
+      app.appendChild(pyramidInstance.domElement());
+      gameInstance.ready.bind(gameInstance)();
+    });
+  };
+}
+
+class PyramidGame {
   stages = [];
   currentStage = 0;
 
@@ -800,8 +826,8 @@ class Game {
   }) {
     this.gamepad = new Gamepad();
     this.clock = new Clock();
-    this.loop = loop;
-    this.setup = setup;
+    this._loop = loop;
+    this._setup = setup;
     this.ready = new Promise(async (resolve, reject) => {
       try {
         const world = await this.loadPhysics();
@@ -842,12 +868,14 @@ class Game {
     const player = this.stage().getPlayer() ?? {
       move: () => {}
     };
-    this.loop({
+
+    this._loop({
       ticks,
       inputs,
       player,
       stage: this.stage()
     });
+
     this.stage().render();
     requestAnimationFrame(() => {
       self.gameLoop(self);
@@ -858,7 +886,8 @@ class Game {
     const primitives = Primitives(this.stage());
     const triggers = Triggers(this.stage());
     const loaders = Loaders(this.stage());
-    this.setup({
+
+    this._setup({
       primitives,
       materials,
       triggers,

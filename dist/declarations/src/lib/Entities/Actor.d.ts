@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { Vector3 } from '@dimforge/rapier3d-compat';
+import { BaseOptions } from './Entity';
 import Entity from './Entity';
 import Stage from '../Stage';
 import { AnimationClip } from 'three';
@@ -19,13 +20,23 @@ export declare class ActorLoader {
      */
     load(files: string[]): Promise<any>;
 }
-export default class Actor extends Entity {
+export default function Actor(options: ActorOptions): (target: any) => any;
+export interface ActorOptions extends BaseOptions {
+    files: Array<string>;
+    position?: Vector3;
+}
+interface ActorInitialization {
+    stage: Stage;
+    payload: any;
+}
+export declare class PyramidActor extends Entity {
     object: THREE.Group;
     actions: THREE.AnimationAction[];
     currentAction?: THREE.AnimationAction;
     animationIndex: number;
     mixer: THREE.AnimationMixer;
-    constructor(stage: Stage, payload: any);
+    actorLoop?: Function;
+    constructor({ stage, payload }: ActorInitialization);
     move(moveVector: Vector3): void;
     rotateInDirection(moveVector: Vector3): void;
     rotate(rotation: Vector3): void;
@@ -35,3 +46,4 @@ export default class Actor extends Entity {
     animate(animationIndex: number): void;
     update(delta: number): void;
 }
+export {};
