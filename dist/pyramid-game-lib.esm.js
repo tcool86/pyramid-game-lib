@@ -679,6 +679,22 @@ class ActorLoader {
   }
 
 }
+function Actor(options) {
+  return target => {
+    const actorInstance = new target();
+    actorInstance.options = options;
+
+    actorInstance.bootup = async (stage, payload) => {
+      const pyramidActorInstance = new PyramidActor({
+        stage,
+        payload
+      });
+      pyramidActorInstance.actorLoop?.bind(actorInstance);
+    };
+
+    return actorInstance;
+  };
+}
 class PyramidActor extends Entity {
   actions = [];
 
@@ -932,6 +948,19 @@ class Menu {
 
 }
 
+function Collision(key) {
+  return (target, name, descriptor) => {
+    const original = descriptor.value;
+    console.log({
+      target,
+      name,
+      descriptor,
+      original,
+      key
+    });
+  };
+}
+
 const Pyramid = {
   Debug,
   Game,
@@ -939,6 +968,11 @@ const Pyramid = {
   Globals,
   Menu,
   Stage,
+  Entity: {
+    Actor,
+    Primitives,
+    Collision
+  },
   Util
 };
 
