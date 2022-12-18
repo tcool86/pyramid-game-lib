@@ -1,21 +1,19 @@
 
 import RAPIER from '@dimforge/rapier3d-compat';
 import Stage from './Stage';
-import { Menu } from './Menu';
+import Menu from './Menu';
 import Entity from './Entities/Entity';
 import { Primitives, PrimitiveOptions } from './Entities/Primitives';
 import { Triggers, TriggerOptions, TriggerEntity } from './Entities/Triggers';
-import { ActorOptions, Loaders } from './Entities/Loaders';
-import Actor from './Entities/Actor';
 import { materials } from './Entities/Materials';
 import Gamepad, { ControllerInput } from './Gamepad';
 
 import { Clock } from 'three';
+import { Loaders } from './Entities/Loaders';
 
 export interface LoopInterface {
 	ticks: number;
 	inputs: ControllerInput[];
-	player: Actor;
 	stage: Stage;
 }
 
@@ -27,9 +25,6 @@ export interface SetupInterface {
 	triggers: {
 		createAreaTrigger(options: TriggerOptions): TriggerEntity;
 	};
-	loaders: {
-		createActor(options: ActorOptions): Actor
-	}
 	materials: {
 		metal: THREE.Material;
 	};
@@ -40,12 +35,26 @@ interface GameOptions {
 	setup: ({ }: SetupInterface) => void;
 }
 
-class Game {
+function Game(app: HTMLElement) {
+	return (target: any) => {
+		const gameInstance = new target();
+		const pyramidInstance = new PyramidGame({
+			loop: gameInstance.loop.bind(gameInstance),
+			setup: gameInstance.setup.bind(gameInstance),
+		});
+		pyramidInstance.ready.then(() => {
+			app.appendChild(pyramidInstance.domElement());
+			gameInstance.ready.bind(gameInstance)();
+		})
+	}
+}
+
+class PyramidGame {
 	stages: Stage[] = [];
 	currentStage: number = 0;
 	menu?: Menu;
-	loop: Function;
-	setup: Function;
+	_loop: Function;
+	_setup: Function;
 	gamepad: Gamepad;
 	clock: Clock;
 	ready: Promise<boolean>;
@@ -53,8 +62,8 @@ class Game {
 	constructor({ loop, setup }: GameOptions) {
 		this.gamepad = new Gamepad();
 		this.clock = new Clock();
-		this.loop = loop;
-		this.setup = setup;
+		this._loop = loop;
+		this._setup = setup;
 		this.ready = new Promise(async (resolve, reject) => {
 			try {
 				const world = await this.loadPhysics();
@@ -84,13 +93,13 @@ class Game {
 	 * update physics
 	 * render scene
 	 */
-	async gameLoop(self: Game) {
+	async gameLoop(self: PyramidGame) {
 		const inputs = this.gamepad.getInputs();
 		const ticks = this.clock.getDelta();
 		this.stage().update(ticks);
 
 		const player = this.stage().getPlayer() ?? { move: () => { } };
-		this.loop({
+		this._loop({
 			ticks,
 			inputs,
 			player,
@@ -107,11 +116,11 @@ class Game {
 		const primitives = Primitives(this.stage());
 		const triggers = Triggers(this.stage());
 		const loaders = Loaders(this.stage());
-		this.setup({
+		this._setup({
 			primitives,
 			materials,
 			triggers,
-			loaders
+			loaders,
 		});
 	}
 

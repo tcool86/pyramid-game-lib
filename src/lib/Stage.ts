@@ -7,7 +7,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import RenderPass from './rendering/RenderPass';
 import Entity from './Entities/Entity';
 import { TriggerEntity } from './Entities/Triggers';
-import Actor from './Entities/Actor';
+import { PyramidActor } from './Entities/Actor';
 
 interface EntityColliderData {
 	id: string;
@@ -20,7 +20,7 @@ export default class Stage {
 	composer: EffectComposer;
 	triggers: Map<string, TriggerEntity>;
 	children: Map<string, Entity>;
-	players: Map<string, Actor>;
+	players: Map<string, PyramidActor>;
 
 	constructor(world: RAPIER.World) {
 		const scene = new THREE.Scene();
@@ -98,7 +98,7 @@ export default class Stage {
 		}
 	}
 
-	updateIntersections(player: Actor) {
+	updateIntersections(player: PyramidActor) {
 		if (!this.triggers) return;
 		for (let [, trigger] of this.triggers) {
 			const isColliding = this.world.intersectionPair(

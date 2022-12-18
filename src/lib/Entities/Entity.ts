@@ -43,6 +43,8 @@ export default class Entity implements EntityBuilder {
 	showDebug: boolean;
 	stageRef: Stage;
 	tag: string;
+	_loop?: Function;
+	_setup?: Function;
 
 	static instanceCounter = 0;
 
@@ -193,7 +195,9 @@ export default class Entity implements EntityBuilder {
 				visible: false
 			});
 		}
+		if (this._loop) {
+			this._loop(_delta);
+		}
 	}
-
 
 }

@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { Vector3, Rotation, RigidBodyType } from '@dimforge/rapier3d-compat';
+import { BaseOptions } from './Entity';
 import Entity from './Entity';
 import Stage from '../Stage';
-import { AnimationClip, Vector4 } from 'three';
+import { AnimationClip } from 'three';
 
 export class ActorLoader {
 	fbxLoader: FBXLoader;
@@ -67,15 +68,37 @@ export class ActorLoader {
 	}
 }
 
+export default function Actor(options: ActorOptions) {
+	return (target: any) => {
+		const actorInstance = new target();
+		actorInstance.options = options;
+		actorInstance.bootup = async (stage: Stage, payload: ActorOptions) => {
+			const pyramidActorInstance: PyramidActor = new PyramidActor({ stage, payload });
+			pyramidActorInstance.actorLoop?.bind(actorInstance);
+		}
+		return actorInstance;
+	}
+}
 
-export default class Actor extends Entity {
+export interface ActorOptions extends BaseOptions {
+	files: Array<string>;
+	position?: Vector3;
+}
+
+interface ActorInitialization {
+	stage: Stage;
+	payload: any;
+}
+
+export class PyramidActor extends Entity {
 	object: THREE.Group;
 	actions: THREE.AnimationAction[] = [];
 	currentAction?: THREE.AnimationAction;
 	animationIndex: number;
 	mixer: THREE.AnimationMixer;
+	actorLoop?: Function;
 
-	constructor(stage: Stage, payload: any) {
+	constructor({ stage, payload }: ActorInitialization) {
 		super(stage, 'player-test');
 		const { actions, mixer, object } = payload;
 
@@ -113,7 +136,7 @@ export default class Actor extends Entity {
 	}
 
 	rotate(rotation: Vector3) {
-		const { x, y, z} = rotation;
+		const { x, y, z } = rotation;
 		const euler = new THREE.Euler(x, y, z);
 		this.object.setRotationFromEuler(euler);
 	}
@@ -155,5 +178,8 @@ export default class Actor extends Entity {
 			this.debug?.rotation.set(this.object.rotation.x, this.object.rotation.y, this.object.rotation.z);
 		}
 		this.mixer.update(delta);
+		if (this.actorLoop) {
+			this.actorLoop(delta);
+		}
 	}
 }

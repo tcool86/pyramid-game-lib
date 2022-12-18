@@ -1,19 +1,10 @@
 import Stage from '../Stage';
-import { Vector3 } from '../Util';
-import { BaseOptions } from './Entity';
-import Actor, { ActorLoader } from './Actor';
+import { ActorLoader, PyramidActor, ActorOptions } from './Actor';
 
-export interface ActorOptions extends BaseOptions {
-	files: Array<string>;
-	position?: Vector3;
-}
-
-export async function createActor(options: ActorOptions, stage: Stage) {
-	// const position = options?.position || new Vector3(0, 0, 0);
-	const files = options?.files ?? [''];
+export async function createActor(target: any, stage: Stage) {
 	const loader = new ActorLoader();
-	const payload = await loader.load(files);
-	const actor: Actor = new Actor(stage, payload);
+	const payload = await loader.load(target.options.files);
+	const actor: PyramidActor = new PyramidActor({ stage, payload });
 	stage.children.set(actor.id, actor);
 	// TODO: condition for player
 	stage.players.set(actor.id, actor);
