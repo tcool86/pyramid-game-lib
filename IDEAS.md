@@ -1,5 +1,14 @@
 # Ideas
 
+```typescript
+async setup({ create }) {
+ // get instance after attached to stage:
+ const box = create(MyBox);
+ // alter instance value after attached to stage
+ box.property = 'new value';
+}
+```
+
 ## Decorators
 
 ### Main Game loop
@@ -7,7 +16,7 @@
 ```typescript
 import { Game, Stage, Entity, GameLoaders } from 'pyramid-game-lib';
 
-@Game()
+@Game(HTMLElement)
 class Main {
 
     loop() {
@@ -17,15 +26,24 @@ class Main {
     }
 }
 
-@Entity()
+@Entity({
+ type: Entity.Box
+})
 class MyBox {
 
     loop(ticks: number) {
         this.rotateX(ticks/1000);
     }
+
+ @Collision('player')
+ destroyBox({ destroy }) {
+  destroy(this);
+ }
 }
 
-@Actor()
+@Actor({
+ animations: [idle, walk, shoot]
+})
 class MyPlayer {
 
     loop({ input }) {
