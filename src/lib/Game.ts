@@ -3,6 +3,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import Stage from './Stage';
 import Menu from './Menu';
 import Entity from './Entities/Entity';
+import { Create } from './Create';
 import { Primitives, PrimitiveOptions } from './Entities/Primitives';
 import { Triggers, TriggerOptions, TriggerEntity } from './Entities/Triggers';
 import { materials } from './Entities/Materials';
@@ -113,10 +114,12 @@ class PyramidGame {
 	}
 
 	async gameSetup() {
+		const commands = Create(this.stage());
 		const primitives = Primitives(this.stage());
 		const triggers = Triggers(this.stage());
 		const loaders = Loaders(this.stage());
 		this._setup({
+			commands,
 			primitives,
 			materials,
 			triggers,
