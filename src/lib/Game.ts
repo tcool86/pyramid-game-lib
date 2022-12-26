@@ -2,10 +2,8 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import Stage from './Stage';
 import Menu from './Menu';
-import Entity from './Entities/Entity';
 import { Create } from './Create';
-import { Primitives, PrimitiveOptions } from './Entities/Primitives';
-import { Triggers, TriggerOptions, TriggerEntity } from './Entities/Triggers';
+import { TriggerOptions, TriggerEntity } from './Entities/Triggers';
 import { materials } from './Entities/Materials';
 import Gamepad, { ControllerInput } from './Gamepad';
 
@@ -19,10 +17,6 @@ export interface LoopInterface {
 }
 
 export interface SetupInterface {
-	primitives: {
-		createBox(options: PrimitiveOptions): Entity;
-		createSphere(options: PrimitiveOptions): Entity;
-	};
 	triggers: {
 		createAreaTrigger(options: TriggerOptions): TriggerEntity;
 	};
@@ -115,17 +109,14 @@ class PyramidGame {
 
 	async gameSetup() {
 		const commands = Create(this.stage());
-		const primitives = Primitives(this.stage());
-		const triggers = Triggers(this.stage());
 		const loaders = Loaders(this.stage());
 		this._setup({
 			commands,
-			primitives,
 			materials,
-			triggers,
 			loaders,
 		});
 	}
+
 
 	stage() {
 		return this.stages[this.currentStage];

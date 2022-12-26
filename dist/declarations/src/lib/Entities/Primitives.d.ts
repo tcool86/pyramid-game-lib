@@ -26,7 +26,3 @@ export interface PrimitiveOptions extends BaseOptions {
 }
 export declare function createBox(options: PrimitiveOptions, stage: Stage): Entity;
 export declare function createSphere(options: PrimitiveOptions, stage: Stage): Entity;
-export declare function Primitives(stage: Stage): {
-    createBox: (options: PrimitiveOptions) => Entity;
-    createSphere: (options: PrimitiveOptions) => Entity;
-};

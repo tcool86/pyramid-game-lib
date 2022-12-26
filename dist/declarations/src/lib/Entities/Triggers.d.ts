@@ -23,6 +23,3 @@ export interface TriggerOptions extends BaseOptions {
     exitAction: Function;
 }
 export declare function createAreaTrigger(options: TriggerOptions, stage: Stage): TriggerEntity;
-export declare function Triggers(stage: Stage): {
-    createAreaTrigger: (options: TriggerOptions) => TriggerEntity;
-};

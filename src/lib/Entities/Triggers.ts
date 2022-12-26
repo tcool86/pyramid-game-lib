@@ -45,11 +45,3 @@ export function createAreaTrigger(options: TriggerOptions, stage: Stage) {
 	stage.triggers.set(entity.id, entity);
 	return entity;
 }
-
-export function Triggers(stage: Stage) {
-	return {
-		createAreaTrigger: (options: TriggerOptions) => {
-			return createAreaTrigger(options, stage)
-		},
-	}
-}

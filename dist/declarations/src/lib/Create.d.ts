@@ -1,6 +1,10 @@
 import { PrimitiveOptions } from "./Entities/Primitives";
 import Stage from './Stage';
-export declare function create(options: PrimitiveOptions, stage: Stage): import("./Entities").Entity;
+import { TriggerOptions } from "./Entities/Triggers";
+import { BaseOptions } from "./Entities/Entity";
+declare type AnyOptions = BaseOptions & PrimitiveOptions & TriggerOptions;
+export declare function create(options: AnyOptions, stage: Stage): import("./Entities").Entity;
 export declare function Create(stage: Stage): {
-    create: (options: PrimitiveOptions) => import("./Entities").Entity;
+    create: (options: AnyOptions) => import("./Entities").Entity;
 };
+export {};

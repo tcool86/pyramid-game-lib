@@ -584,32 +584,6 @@ function createSphere(options, stage) {
   stage.children.set(entity.id, entity);
   return entity;
 }
-function Primitives(stage) {
-  return {
-    createBox: options => {
-      return createBox(options, stage);
-    },
-    createSphere: options => {
-      return createSphere(options, stage);
-    }
-  };
-}
-
-function determineEntity(options) {
-  const isSphere = options.radius;
-  return isSphere ? createSphere : createBox;
-}
-function create(options, stage) {
-  const fn = determineEntity(options);
-  return fn(options, stage);
-}
-function Create(stage) {
-  return {
-    create: options => {
-      return create(options, stage);
-    }
-  };
-}
 
 /**
  * Functions for creating primitive geometries easily
@@ -639,10 +613,23 @@ function createAreaTrigger(options, stage) {
   stage.triggers.set(entity.id, entity);
   return entity;
 }
-function Triggers(stage) {
+
+function determineEntity(options) {
+  const hasActions = options.action;
+  if (hasActions) {
+    return createAreaTrigger;
+  }
+  const isSphere = options.radius;
+  return isSphere ? createSphere : createBox;
+}
+function create(options, stage) {
+  const fn = determineEntity(options);
+  return fn(options, stage);
+}
+function Create(stage) {
   return {
-    createAreaTrigger: options => {
-      return createAreaTrigger(options, stage);
+    create: options => {
+      return create(options, stage);
     }
   };
 }
@@ -844,14 +831,10 @@ class PyramidGame {
   }
   async gameSetup() {
     const commands = Create(this.stage());
-    const primitives = Primitives(this.stage());
-    const triggers = Triggers(this.stage());
     const loaders = Loaders(this.stage());
     this._setup({
       commands,
-      primitives,
       materials,
-      triggers,
       loaders
     });
   }
@@ -896,7 +879,6 @@ const Pyramid = {
   Stage,
   Entity: {
     Actor,
-    Primitives,
     Collision
   },
   Util

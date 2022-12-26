@@ -68,14 +68,3 @@ export function createSphere(options: PrimitiveOptions, stage: Stage) {
 	stage.children.set(entity.id, entity);
 	return entity;
 }
-
-export function Primitives(stage: Stage) {
-	return {
-		createBox: (options: PrimitiveOptions) => {
-			return createBox(options, stage)
-		},
-		createSphere: (options: PrimitiveOptions) => {
-			return createSphere(options, stage);
-		}
-	}
-}
