@@ -5,7 +5,7 @@ import Globals from './lib/Globals';
 import Menu from './lib/Menu';
 import Stage from './lib/Stage';
 import Util from './lib/Util';
-import { Actor, Collision, Box, Sphere } from './lib/Entities';
+import { Actor, Collision, Box, Sphere, Trigger } from './lib/Entities';
 import { Materials } from './lib/Entities/Materials';
 
 const Pyramid = {
@@ -15,7 +15,7 @@ const Pyramid = {
 	Globals,
 	Menu,
 	Stage,
-	Entity: { Actor, Collision, Materials, Box, Sphere },
+	Entity: { Actor, Collision, Materials, Box, Sphere, Trigger },
 	Util,
 }
 export default Pyramid;

@@ -1,7 +1,14 @@
 import Entity from '../Entity';
+import { PrimitiveOptions } from '.';
 import { Vector3, Vector2 } from '../../Util';
-import { BoxOptions, CreatePrimitiveType } from ".";
+import { CreationParameters } from '..';
 import { Color } from 'three';
+
+export interface BoxOptions extends PrimitiveOptions {
+	width: number;
+	height: number;
+	depth: number;
+}
 
 export function Box(options: Partial<BoxOptions>) {
 	return (target: any) => {
@@ -22,12 +29,16 @@ const boxDefaults: BoxOptions = {
 	textureSize: new Vector2(1, 1),
 }
 
-export function createBox({ classInstance, parameters, stage }: CreatePrimitiveType) {
+export function createBox({ classInstance, parameters, stage }: CreationParameters) {
 	const { _options, constructor } = classInstance;
-
+	// TODO: do all objects added to the stage via create share this?
 	const entity = new Entity(stage, constructor.name);
-	entity._loop = classInstance.loop;
-	entity._setup = classInstance.setup;
+	if (classInstance.loop) {
+		entity._loop = classInstance.loop.bind(classInstance);
+	}
+	if (classInstance.setup) {
+		entity._setup = classInstance.setup.bind(classInstance);
+	}
 
 	const options = Object.assign({}, boxDefaults, _options, parameters);
 

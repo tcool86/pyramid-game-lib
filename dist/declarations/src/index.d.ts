@@ -4,7 +4,7 @@ import Gamepad from './lib/Gamepad';
 import Globals from './lib/Globals';
 import Menu from './lib/Menu';
 import Stage from './lib/Stage';
-import { Actor, Collision, Box, Sphere } from './lib/Entities';
+import { Actor, Collision, Box, Sphere, Trigger } from './lib/Entities';
 declare const Pyramid: {
     Debug: typeof Debug;
     Game: typeof Game;
@@ -20,6 +20,7 @@ declare const Pyramid: {
         };
         Box: typeof Box;
         Sphere: typeof Sphere;
+        Trigger: typeof Trigger;
     };
     Util: {
         Vector3: typeof import("./lib/Util").Vector3;

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { Vector3 } from '@dimforge/rapier3d-compat';
-import { BaseOptions } from './Entity';
+import { BaseOptions } from '.';
 import Entity from './Entity';
 import Stage from '../Stage';
 import { AnimationClip } from 'three';
@@ -36,7 +36,6 @@ export declare class PyramidActor extends Entity {
     currentAction?: THREE.AnimationAction;
     animationIndex: number;
     mixer: THREE.AnimationMixer;
-    actorLoop?: Function;
     constructor({ stage, payload }: ActorInitialization);
     move(moveVector: Vector3): void;
     rotateInDirection(moveVector: Vector3): void;

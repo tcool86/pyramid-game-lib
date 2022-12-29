@@ -1,7 +1,12 @@
 import Entity from '../Entity';
 import { Vector3, Vector2 } from '../../Util';
-import { CreatePrimitiveType, SphereOptions } from ".";
+import { PrimitiveOptions } from ".";
+import { CreationParameters } from '..';
 import { Color } from 'three';
+
+export interface SphereOptions extends PrimitiveOptions {
+	radius: number;
+}
 
 export function Sphere(options: Partial<SphereOptions>) {
 	return (target: any) => {
@@ -20,10 +25,17 @@ const sphereDefaults: SphereOptions = {
 	textureSize: new Vector2(1, 1),
 }
 
-export function createSphere({ classInstance, parameters, stage }: CreatePrimitiveType) {
+export function createSphere({ classInstance, parameters, stage }: CreationParameters) {
 	const { _options, constructor } = classInstance;
 
 	const entity = new Entity(stage, constructor.name);
+	if (classInstance.loop) {
+		entity._loop = classInstance.loop.bind(classInstance);
+	}
+	if (classInstance.setup) {
+		entity._setup = classInstance.setup.bind(classInstance);
+	}
+
 	const options = Object.assign({}, sphereDefaults, _options, parameters);
 
 	const radius = options.radius;

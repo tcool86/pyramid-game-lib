@@ -1,18 +1,13 @@
 import * as THREE from 'three';
-import Stage from '../Stage';
 import { Vector3 } from '../Util';
-import Entity, { BaseOptions } from './Entity';
-
-/**
- * Functions for creating primitive geometries easily
- * easily create an object with collision and a texture
- * 
- */
+import { CreationParameters, BaseOptions } from '.';
+import Entity from './Entity';
+import { Color } from 'three';
 
 export interface TriggerEntity extends Entity {
-	action?: Function;
-	exitAction?: Function;
-	enteredTrigger?: boolean;
+	onEnter?: Function;
+	onExit?: Function;
+	hasEntered?: boolean;
 }
 
 export interface TriggerOptions extends BaseOptions {
@@ -23,25 +18,56 @@ export interface TriggerOptions extends BaseOptions {
 	x?: number;
 	y?: number;
 	z?: number;
-	action: Function;
-	exitAction: Function;
+	onEnter: Function;
+	onExit: Function;
 }
 
-export function createAreaTrigger(options: TriggerOptions, stage: Stage) {
+export function Trigger(options: Partial<TriggerOptions>) {
+	return (target: any) => {
+		target.prototype._options = options;
+		target.prototype._create = createAreaTrigger;
+	}
+}
+
+const triggerDefaults: TriggerOptions = {
+	debugColor: Color.NAMES.white,
+	showDebug: false,
+	position: new Vector3(0, 0, 0),
+	onEnter: () => { },
+	onExit: () => { },
+};
+
+export function createAreaTrigger({ classInstance, parameters, stage }: CreationParameters) {
+	const { _options, constructor } = classInstance;
+
+	const entity: TriggerEntity = new Entity(stage, constructor.name);
+	if (classInstance.loop) {
+		entity._loop = classInstance.loop.bind(classInstance);
+	}
+	if (classInstance.setup) {
+		entity._setup = classInstance.setup.bind(classInstance);
+	}
+
+	const options = Object.assign({}, triggerDefaults, _options, parameters);
+
 	const { width, height, depth } = options;
-	const position = options?.position || new Vector3(0, 0, 0);
-	const entity: TriggerEntity = new Entity(stage, 'test');
 	const size = new Vector3(width, height, depth);
-	const color = options?.debugColor || 0xFFFFFF;
+
+	const position = options.position;
+	const color = options.debugColor;
 	const geometry = new THREE.BoxGeometry(width, height, depth);
 	entity.createDebugMesh(geometry, position, color);
 	entity.createBody(position);
 	entity.collisionRectangular(size, true);
 	entity.collisionStatic();
-	entity.showDebug = options?.showDebug ?? false;
-	entity.action = options.action;
-	entity.exitAction = options.exitAction;
-	stage.children.set(entity.id, entity);
+
+	entity.showDebug = options.showDebug;
+
+	entity.onEnter = options.onEnter;
+	entity.onExit = options.onExit;
+
+	stage.addChild(entity.id, entity);
 	stage.triggers.set(entity.id, entity);
+
 	return entity;
 }

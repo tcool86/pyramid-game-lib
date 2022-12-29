@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { Vector3, Rotation, RigidBodyType } from '@dimforge/rapier3d-compat';
-import { BaseOptions } from './Entity';
+import { BaseOptions } from '.';
 import Entity from './Entity';
 import Stage from '../Stage';
 import { AnimationClip } from 'three';
@@ -73,7 +73,13 @@ export async function createActor({ classInstance, parameters, stage }: any) {
 	const { _options } = classInstance;
 	const payload = await loader.load(_options.files);
 	const actor: PyramidActor = new PyramidActor({ stage, payload });
-	stage.children.set(actor.id, actor);
+	if (classInstance.loop) {
+		actor._loop = classInstance.loop.bind(classInstance);
+	}
+	if (classInstance.setup) {
+		actor._setup = classInstance.setup.bind(classInstance);
+	}
+	stage.addChild(actor.id, actor);
 	// TODO: condition for player
 	stage.players.set(actor.id, actor);
 	return actor;
@@ -102,7 +108,6 @@ export class PyramidActor extends Entity {
 	currentAction?: THREE.AnimationAction;
 	animationIndex: number;
 	mixer: THREE.AnimationMixer;
-	actorLoop?: Function;
 
 	constructor({ stage, payload }: ActorInitialization) {
 		super(stage, 'player-test');
@@ -183,8 +188,5 @@ export class PyramidActor extends Entity {
 			this.debug?.rotation.set(this.object.rotation.x, this.object.rotation.y, this.object.rotation.z);
 		}
 		this.mixer.update(delta);
-		if (this.actorLoop) {
-			this.actorLoop(delta);
-		}
 	}
 }

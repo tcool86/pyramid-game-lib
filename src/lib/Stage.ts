@@ -115,12 +115,12 @@ export default class Stage {
 				player.body.collider(0)
 			);
 			if (isColliding) {
-				if (trigger.action) {
-					trigger.action();
+				if (trigger.onEnter) {
+					trigger.onEnter();
 				}
 			} else {
-				if (trigger.exitAction) {
-					trigger.exitAction();
+				if (trigger.onExit) {
+					trigger.onExit();
 				}
 			}
 		}

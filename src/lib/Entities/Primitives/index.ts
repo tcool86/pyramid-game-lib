@@ -1,7 +1,6 @@
 import { Material } from 'three';
-import Stage from '../../Stage';
 import { Vector3, Vector2 } from '../../Util';
-import { BaseOptions } from '../Entity';
+import { BaseOptions } from '..';
 export { Box, createBox } from './Box';
 export { Sphere, createSphere } from './Sphere';
 
@@ -18,17 +17,3 @@ export interface PrimitiveOptions extends BaseOptions {
 	isSensor?: boolean;
 	fixed?: boolean;
 }
-
-export interface BoxOptions extends PrimitiveOptions {
-	width: number;
-	height: number;
-	depth: number;
-}
-
-export interface SphereOptions extends PrimitiveOptions {
-	radius: number;
-}
-
-type AnyOption = PrimitiveOptions | SphereOptions | BoxOptions;
-
-export type CreatePrimitiveType = { classInstance: any, parameters: AnyOption, stage: Stage };

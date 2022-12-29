@@ -1,15 +1,10 @@
-import Stage from '../Stage';
 import { Vector3 } from '../Util';
-import Entity, { BaseOptions } from './Entity';
-/**
- * Functions for creating primitive geometries easily
- * easily create an object with collision and a texture
- *
- */
+import { CreationParameters, BaseOptions } from '.';
+import Entity from './Entity';
 export interface TriggerEntity extends Entity {
-    action?: Function;
-    exitAction?: Function;
-    enteredTrigger?: boolean;
+    onEnter?: Function;
+    onExit?: Function;
+    hasEntered?: boolean;
 }
 export interface TriggerOptions extends BaseOptions {
     width?: number;
@@ -19,7 +14,8 @@ export interface TriggerOptions extends BaseOptions {
     x?: number;
     y?: number;
     z?: number;
-    action: Function;
-    exitAction: Function;
+    onEnter: Function;
+    onExit: Function;
 }
-export declare function createAreaTrigger(options: TriggerOptions, stage: Stage): TriggerEntity;
+export declare function Trigger(options: Partial<TriggerOptions>): (target: any) => void;
+export declare function createAreaTrigger({ classInstance, parameters, stage }: CreationParameters): TriggerEntity;

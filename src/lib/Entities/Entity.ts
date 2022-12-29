@@ -27,11 +27,6 @@ export function pixelTexture(texture: THREE.Texture) {
 	return texture;
 }
 
-export interface BaseOptions {
-	showDebug: boolean;
-	debugColor: number;
-}
-
 export default class Entity implements EntityBuilder {
 	id: string;
 	material?: THREE.Material;

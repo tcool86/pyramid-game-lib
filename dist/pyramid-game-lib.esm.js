@@ -187,12 +187,12 @@ class Stage {
       const isColliding = this.world.intersectionPair(trigger.body.collider(0), player.body.collider(0));
 
       if (isColliding) {
-        if (trigger.action) {
-          trigger.action();
+        if (trigger.onEnter) {
+          trigger.onEnter();
         }
       } else {
-        if (trigger.exitAction) {
-          trigger.exitAction();
+        if (trigger.onExit) {
+          trigger.onExit();
         }
       }
     }
@@ -791,7 +791,16 @@ async function createActor({
     stage,
     payload
   });
-  stage.children.set(actor.id, actor); // TODO: condition for player
+
+  if (classInstance.loop) {
+    actor._loop = classInstance.loop.bind(classInstance);
+  }
+
+  if (classInstance.setup) {
+    actor._setup = classInstance.setup.bind(classInstance);
+  }
+
+  stage.addChild(actor.id, actor); // TODO: condition for player
 
   stage.players.set(actor.id, actor);
   return actor;
@@ -897,10 +906,6 @@ class PyramidActor extends Entity {
     }
 
     this.mixer.update(delta);
-
-    if (this.actorLoop) {
-      this.actorLoop(delta);
-    }
   }
 
 }
@@ -943,10 +948,18 @@ function createBox({
   const {
     _options,
     constructor
-  } = classInstance;
+  } = classInstance; // TODO: do all objects added to the stage via create share this?
+
   const entity = new Entity(stage, constructor.name);
-  entity._loop = classInstance.loop;
-  entity._setup = classInstance.setup;
+
+  if (classInstance.loop) {
+    entity._loop = classInstance.loop.bind(classInstance);
+  }
+
+  if (classInstance.setup) {
+    entity._setup = classInstance.setup.bind(classInstance);
+  }
+
   const options = Object.assign({}, boxDefaults, _options, parameters);
   const {
     width,
@@ -1000,6 +1013,15 @@ function createSphere({
     constructor
   } = classInstance;
   const entity = new Entity(stage, constructor.name);
+
+  if (classInstance.loop) {
+    entity._loop = classInstance.loop.bind(classInstance);
+  }
+
+  if (classInstance.setup) {
+    entity._setup = classInstance.setup.bind(classInstance);
+  }
+
   const options = Object.assign({}, sphereDefaults, _options, parameters);
   const radius = options.radius;
   const position = options.position;
@@ -1015,6 +1037,60 @@ function createSphere({
   entity.debugColor = options.debugColor;
   entity.showDebug = options.showDebug;
   stage.addChild(entity.id, entity);
+  return entity;
+}
+
+function Trigger(options) {
+  return target => {
+    target.prototype._options = options;
+    target.prototype._create = createAreaTrigger;
+  };
+}
+const triggerDefaults = {
+  debugColor: Color.NAMES.white,
+  showDebug: false,
+  position: new Vector3(0, 0, 0),
+  onEnter: () => {},
+  onExit: () => {}
+};
+function createAreaTrigger({
+  classInstance,
+  parameters,
+  stage
+}) {
+  const {
+    _options,
+    constructor
+  } = classInstance;
+  const entity = new Entity(stage, constructor.name);
+
+  if (classInstance.loop) {
+    entity._loop = classInstance.loop.bind(classInstance);
+  }
+
+  if (classInstance.setup) {
+    entity._setup = classInstance.setup.bind(classInstance);
+  }
+
+  const options = Object.assign({}, triggerDefaults, _options, parameters);
+  const {
+    width,
+    height,
+    depth
+  } = options;
+  const size = new Vector3(width, height, depth);
+  const position = options.position;
+  const color = options.debugColor;
+  const geometry = new THREE.BoxGeometry(width, height, depth);
+  entity.createDebugMesh(geometry, position, color);
+  entity.createBody(position);
+  entity.collisionRectangular(size, true);
+  entity.collisionStatic();
+  entity.showDebug = options.showDebug;
+  entity.onEnter = options.onEnter;
+  entity.onExit = options.onExit;
+  stage.addChild(entity.id, entity);
+  stage.triggers.set(entity.id, entity);
   return entity;
 }
 
@@ -1035,7 +1111,8 @@ const Pyramid = {
     Collision,
     Materials,
     Box,
-    Sphere
+    Sphere,
+    Trigger
   },
   Util
 };

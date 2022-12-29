@@ -15,10 +15,6 @@ export interface EntityBuilder {
     applyMaterial(texturePath: string | null, color: number, repeat: Vector2): void;
 }
 export declare function pixelTexture(texture: THREE.Texture): THREE.Texture;
-export interface BaseOptions {
-    showDebug: boolean;
-    debugColor: number;
-}
 export default class Entity implements EntityBuilder {
     id: string;
     material?: THREE.Material;
