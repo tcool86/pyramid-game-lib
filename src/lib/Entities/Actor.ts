@@ -68,15 +68,21 @@ export class ActorLoader {
 	}
 }
 
-export default function Actor(options: ActorOptions) {
+export async function createActor({ classInstance, parameters, stage }: any) {
+	const loader = new ActorLoader();
+	const { _options } = classInstance;
+	const payload = await loader.load(_options.files);
+	const actor: PyramidActor = new PyramidActor({ stage, payload });
+	stage.children.set(actor.id, actor);
+	// TODO: condition for player
+	stage.players.set(actor.id, actor);
+	return actor;
+}
+
+export default function Actor(options: Partial<ActorOptions>) {
 	return (target: any) => {
-		const actorInstance = new target();
-		actorInstance.options = options;
-		actorInstance.bootup = async (stage: Stage, payload: ActorOptions) => {
-			const pyramidActorInstance: PyramidActor = new PyramidActor({ stage, payload });
-			pyramidActorInstance.actorLoop?.bind(actorInstance);
-		}
-		return actorInstance;
+		target.prototype._create = createActor;
+		target.prototype._options = options;
 	}
 }
 
@@ -152,7 +158,6 @@ export class PyramidActor extends Entity {
 	rotateZ(amount: number) {
 		this.rotate(new Vector3(0, 0, amount));
 	}
-
 
 	animate(animationIndex: number) {
 		if (this.actions.length === 0) { return; }

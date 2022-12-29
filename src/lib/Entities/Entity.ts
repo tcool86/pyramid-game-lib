@@ -12,7 +12,7 @@ export interface EntityBuilder {
 	collisionRectangular(size: Vector3): void;
 	collisionSpherical(radius: number): void;
 	collisionStatic(): void;
-	setRotation(): void;
+	setRotation(x: number, y: number, z: number): void;
 	applyMaterial(texturePath: string | null, color: number, repeat: Vector2): void;
 }
 
@@ -28,8 +28,8 @@ export function pixelTexture(texture: THREE.Texture) {
 }
 
 export interface BaseOptions {
-	showDebug?: boolean;
-	debugColor?: number;
+	showDebug: boolean;
+	debugColor: number;
 }
 
 export default class Entity implements EntityBuilder {
@@ -146,11 +146,27 @@ export default class Entity implements EntityBuilder {
 		this.body.setBodyType(RAPIER.RigidBodyType.Fixed);
 	}
 
-	setRotation(): void {
-		const x = Number(this.mesh?.rotateX) ?? 0;
-		const y = Number(this.mesh?.rotateY) ?? 0;
-		const z = Number(this.mesh?.rotateZ) ?? 0;
-		this.body.setRotation({ x, y, z, w: 0 }, true);
+	setRotation(x: number = 0, y: number = 0, z: number = 0): void {
+		this.body.setRotation({ x, y, z, w: 1 }, true);
+	}
+
+	rotateX(amount: number) {
+		const current = this.body.rotation();
+		this.setRotation(current.x + amount, 0, 0);
+	}
+
+	rotateY(amount: number) {
+		const current = this.body.rotation();
+		this.setRotation(0, current.y + amount, 0);
+	}
+
+	rotateZ(amount: number) {
+		const current = this.body.rotation();
+		this.setRotation(0, 0, current.z + amount);
+	}
+
+	angularVelocity(vector: Vector3) {
+		this.body.setAngvel(vector, true);
 	}
 
 	applyMaterial(texturePath: string | null, color: number, repeat: Vector2) {
@@ -196,8 +212,21 @@ export default class Entity implements EntityBuilder {
 			});
 		}
 		if (this._loop) {
-			this._loop(_delta);
+			this._loop({
+				entity: this,
+				delta: _delta
+			});
 		}
 	}
 
+}
+
+Entity.prototype.toString = function () {
+	let output = '';
+	output += `id: ${this.id}\n`;
+	output += `tag: ${this.tag}\n`;
+	output += `body: ${this.body.handle}\n`;
+	output += `mesh: ${this?.mesh?.uuid}\n`;
+	output += `debug mesh: ${this?.debug?.uuid}\n`;
+	return output;
 }

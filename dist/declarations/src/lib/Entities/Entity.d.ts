@@ -11,13 +11,13 @@ export interface EntityBuilder {
     collisionRectangular(size: Vector3): void;
     collisionSpherical(radius: number): void;
     collisionStatic(): void;
-    setRotation(): void;
+    setRotation(x: number, y: number, z: number): void;
     applyMaterial(texturePath: string | null, color: number, repeat: Vector2): void;
 }
 export declare function pixelTexture(texture: THREE.Texture): THREE.Texture;
 export interface BaseOptions {
-    showDebug?: boolean;
-    debugColor?: number;
+    showDebug: boolean;
+    debugColor: number;
 }
 export default class Entity implements EntityBuilder {
     id: string;
@@ -43,7 +43,11 @@ export default class Entity implements EntityBuilder {
     collisionSpherical(radius: number, isSensor?: boolean): void;
     collisionCustomGeometry(geometry: THREE.BufferGeometry): void;
     collisionStatic(): void;
-    setRotation(): void;
+    setRotation(x?: number, y?: number, z?: number): void;
+    rotateX(amount: number): void;
+    rotateY(amount: number): void;
+    rotateZ(amount: number): void;
+    angularVelocity(vector: Vector3): void;
     applyMaterial(texturePath: string | null, color: number, repeat: Vector2): void;
     update(_delta: number): void;
 }

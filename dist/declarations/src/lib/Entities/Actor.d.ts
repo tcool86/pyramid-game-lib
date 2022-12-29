@@ -20,7 +20,8 @@ export declare class ActorLoader {
      */
     load(files: string[]): Promise<any>;
 }
-export default function Actor(options: ActorOptions): (target: any) => any;
+export declare function createActor({ classInstance, parameters, stage }: any): Promise<PyramidActor>;
+export default function Actor(options: Partial<ActorOptions>): (target: any) => void;
 export interface ActorOptions extends BaseOptions {
     files: Array<string>;
     position?: Vector3;

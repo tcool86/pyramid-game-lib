@@ -4,11 +4,9 @@ import Stage from './Stage';
 import Menu from './Menu';
 import { Create } from './Create';
 import { TriggerOptions, TriggerEntity } from './Entities/Triggers';
-import { materials } from './Entities/Materials';
 import Gamepad, { ControllerInput } from './Gamepad';
 
 import { Clock } from 'three';
-import { Loaders } from './Entities/Loaders';
 
 export interface LoopInterface {
 	ticks: number;
@@ -109,11 +107,8 @@ class PyramidGame {
 
 	async gameSetup() {
 		const commands = Create(this.stage());
-		const loaders = Loaders(this.stage());
 		this._setup({
 			commands,
-			materials,
-			loaders,
 		});
 	}
 

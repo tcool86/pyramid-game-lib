@@ -63,6 +63,15 @@ export default class Stage {
 		this.players = new Map();
 	}
 
+	addChild(id: string, child: any) {
+		if (child._setup) {
+			child._setup({
+				entity: child
+			});
+		}
+		this.children.set(id, child);
+	}
+
 	update(delta: number) {
 		this.world.step();
 		const entityIterator = this.children.entries();
