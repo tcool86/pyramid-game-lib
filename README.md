@@ -1,10 +1,10 @@
 # Pyramid Game Lib
 
-A simple, easy-to-use library for RAD (rapid application development) game development using the Vite build tool and TypeScript.
+A simple, easy-to-use library for 3D games and interactive media using the Vite build tool and TypeScript.
 
 ## Disclaimer
 
-This is actively being developed as of October 7th, 2022. Not all the features have been implemented and could change. Do *not* use this if you are looking for a high-performance game engine.
+This is semi-actively being developed. Not all the features have been implemented and could change. Do *not* use this if you are looking for a high-performance game engine.
 
 ### Why Pyramid Game Lib?
 
@@ -27,7 +27,21 @@ The goal is to give you tools to build simple 3D games. It's basically comprised
 
 The easiest way to deploy is via Railway with Vite-TypeScript template: <https://github.com/NotConspicuous/Vite-Typescript-Railway-Template>
 
-### Installation
+## Examples
+
+All examples are a work in progress.
+
+### Timbotron (Feature demo)
+
+> Repository: <https://github.com/tcool86/timbotron>
+
+> Live Demo: <https://vite-production-b29b.up.railway.app/>
+
+### Sample Game (Basic)
+
+> Repository: <https://github.com/tcool86/didactic-robot>
+
+## Installation
 
 ```yarn add 'pyramid-game-lib'```
 
@@ -46,32 +60,59 @@ Within the `main.ts` file:
 import Pyramid from 'pyramid-game-lib';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
-const { Game, Util } = Pyramid;
-const { Vector3 } = Util;
 
-const game = new Game({
-    setup: async ({ primitives, materials, triggers, loaders }: any) => {
-        const { createBox, createSphere } = primitives;
-        const { createAreaTrigger } = triggers;
-        // Box
-        createBox({
-            debugColor: 0xBADA55,
-            showDebug: true,
-            position: new Vector3(-3, 0.5, 3),
-            width: 2,
-            height: 2,
-            depth: 2
-        });
-    },
-    loop: ({ inputs, player }: any) => {
+const { Game, Util, Entity } = Pyramid;
+const { Box, Sphere } = Entity;
+const { Vector3, Vector2 } = Util;
+
+@Box({
+    fixed: true,
+    color: 0xFFDEAD,
+    width: 100,
+    height: 0.2,
+    depth: 100
+})
+export class Ground { }
+
+@Sphere({
+    color: 0x008080,
+    position: new Vector3(3, 2, -3),
+    radius: 1
+})
+export class SpecialBall {
+    timer: number = 2;
+
+    setup({ entity }: any) {
+        console.log(`Entity: ${entity}`);
+    }
+    loop({ entity, delta }: any) {
+        this.timer += delta;
+        if (this.timer > 2) {
+            entity.body.applyImpulse(new Vector3(0, 50, 0));
+            this.timer = 0;
+        }
+    }
+}
+
+@Game(app)
+class SampleGame {
+    async setup({ commands }: any) {
+        const { create } = await commands;
+        create(Ground);
+        create(SpecialBall);
+    }
+
+    loop({ inputs }: any) {
         const { horizontal, vertical, buttonA, buttonB } = inputs[0];
         if (buttonA) { console.log("A Pressed"); }
         if (buttonB) { console.log("B Pressed"); }
         if (horizontal) { console.log(`Horizontal: ${horizontal}`); }
         if (vertical) { console.log(`Vertical: ${vertical}`); }
     }
-});
-game.ready.then(() => {
-    app.appendChild(game.domElement());
-});
+
+    ready() { }
+}
+
+new SampleGame();
+
 ```
