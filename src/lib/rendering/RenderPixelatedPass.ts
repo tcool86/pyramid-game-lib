@@ -1,5 +1,4 @@
 import * as THREE from "three"
-// TODO: fix importing fx file
 import * as fragmentShader from './fragment-shaders/pixelated.fx';
 import * as vertexShader from './vertex-shaders/standard.fx';
 import { WebGLRenderer, WebGLRenderTarget } from "three"
