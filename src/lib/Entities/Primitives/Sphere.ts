@@ -8,7 +8,7 @@ export interface SphereOptions extends PrimitiveOptions {
 	radius: number;
 }
 
-export function Sphere(options: Partial<SphereOptions>) {
+export function Sphere(options?: Partial<SphereOptions>) {
 	return (target: any) => {
 		target.prototype._options = options;
 		target.prototype._create = createSphere;

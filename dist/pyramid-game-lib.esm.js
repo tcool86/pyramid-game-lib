@@ -91,19 +91,31 @@ class Stage {
     scene.background = new THREE.Color(0x5843c1);
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
-    const pointLight = new THREE.PointLight(0xFFF, 5.0, 50.0);
-    pointLight.position.set(0, 1, 0);
-    scene.add(pointLight);
-    const spotLight = new THREE.SpotLight(0xffffff);
-    spotLight.name = 'Spot Light';
-    spotLight.penumbra = 1;
-    spotLight.position.set(0, 100, 0);
-    spotLight.castShadow = true;
-    spotLight.shadow.camera.near = 0.1;
-    spotLight.shadow.camera.far = 2000;
-    spotLight.shadow.mapSize.width = 1024;
-    spotLight.shadow.mapSize.height = 1024;
-    scene.add(spotLight);
+
+    // const pointLight = new THREE.PointLight(0xFFF, 5.0, 50.0);
+    // pointLight.position.set(0, 1, 0);
+    // scene.add(pointLight);
+
+    // const spotLight = new THREE.SpotLight(0xffffff);
+    // spotLight.name = 'Spot Light';
+    // spotLight.penumbra = 1;
+    // spotLight.position.set(0, 100, 0);
+    // spotLight.castShadow = true;
+    // spotLight.shadow.camera.near = 0.1;
+    // spotLight.shadow.camera.far = 2000;
+    // spotLight.shadow.mapSize.width = 1024;
+    // spotLight.shadow.mapSize.height = 1024;
+    // scene.add(spotLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.name = 'Light';
+    directionalLight.position.set(0, 100, 0);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.camera.near = 0.1;
+    directionalLight.shadow.camera.far = 2000;
+    directionalLight.shadow.mapSize.width = 1024;
+    directionalLight.shadow.mapSize.height = 1024;
+    scene.add(directionalLight);
 
     // scene.add(new THREE.CameraHelper(spotLight.shadow.camera));
 
