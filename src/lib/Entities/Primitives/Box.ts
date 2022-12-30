@@ -10,7 +10,7 @@ export interface BoxOptions extends PrimitiveOptions {
 	depth: number;
 }
 
-export function Box(options: Partial<BoxOptions>) {
+export function Box(options?: Partial<BoxOptions>) {
 	return (target: any) => {
 		target.prototype._options = options;
 		target.prototype._create = createBox;

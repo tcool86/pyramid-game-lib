@@ -1,7 +1,6 @@
 import * as THREE from "three";
-// TODO: fix importing fx file
-// import * as fragmentShader from './fragment-shaders/standard.fx';
-// import * as vertexShader from './vertex-shaders/standard.fx';
+import * as fragmentShader from './fragment-shaders/standard.fx';
+import * as vertexShader from './vertex-shaders/standard.fx';
 import { WebGLRenderer, WebGLRenderTarget } from "three";
 import { Pass, FullScreenQuad } from "three/examples/jsm/postprocessing/Pass";
 
@@ -69,20 +68,8 @@ export default class RenderPass extends Pass {
 					)
 				}
 			},
-			vertexShader: `varying vec2 vUv;
-
-			void main() {
-				vUv = uv;
-				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-			}`,
-			fragmentShader: `uniform sampler2D tDiffuse;
-			varying vec2 vUv;
-			
-			void main() {
-				vec4 texel = texture2D( tDiffuse, vUv );
-			
-				gl_FragColor = texel;
-			}`
+			vertexShader: vertexShader,
+			fragmentShader: fragmentShader
 		})
 	}
 }

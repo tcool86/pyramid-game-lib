@@ -6,5 +6,5 @@ export interface BoxOptions extends PrimitiveOptions {
     height: number;
     depth: number;
 }
-export declare function Box(options: Partial<BoxOptions>): (target: any) => void;
+export declare function Box(options?: Partial<BoxOptions>): (target: any) => void;
 export declare function createBox({ classInstance, parameters, stage }: CreationParameters): Entity;

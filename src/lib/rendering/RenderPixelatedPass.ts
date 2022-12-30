@@ -1,7 +1,7 @@
 import * as THREE from "three"
 // TODO: fix importing fx file
-import fragmentShader from './fragment-shaders/pixelated.fx';
-import vertexShader from './vertex-shaders/standard.fx';
+import * as fragmentShader from './fragment-shaders/pixelated.fx';
+import * as vertexShader from './vertex-shaders/standard.fx';
 import { WebGLRenderer, WebGLRenderTarget } from "three"
 import { Pass, FullScreenQuad } from "three/examples/jsm/postprocessing/Pass"
 
@@ -25,6 +25,7 @@ export default class RenderPixelatedPass extends Pass {
 		this.normalRenderTarget = pixelRenderTarget(resolution, THREE.RGBAFormat, false);
 
 		this.normalMaterial = new THREE.MeshNormalMaterial();
+		console.log(fragmentShader);
 	}
 
 	render(

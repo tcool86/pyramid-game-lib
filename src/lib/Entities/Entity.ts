@@ -58,6 +58,7 @@ export default class Entity implements EntityBuilder {
 		this.mesh = new THREE.Mesh(geometry, this.material);
 		this.mesh.position.set(position.x, position.y, position.z);
 		this.mesh.castShadow = true;
+		this.mesh.receiveShadow = true;
 		scene.add(this.mesh);
 		this.createDebugMesh(geometry, position);
 	}
@@ -68,6 +69,7 @@ export default class Entity implements EntityBuilder {
 		this.mesh = new THREE.Mesh(geometry, this.material);
 		this.mesh.position.set(position.x, position.y, position.z);
 		this.mesh.castShadow = true;
+		this.mesh.receiveShadow = true;
 		scene.add(this.mesh);
 		this.createDebugMesh(geometry, position);
 	}
@@ -181,8 +183,11 @@ export default class Entity implements EntityBuilder {
 				// bumpScale: 0.3
 			});
 		} else {
-			material = new THREE.MeshBasicMaterial({
+			material = new THREE.MeshStandardMaterial({
 				color: color,
+				emissiveIntensity: 0.5,
+				lightMapIntensity: 0.5,
+				fog: true,
 			});
 		}
 		this.material = material;

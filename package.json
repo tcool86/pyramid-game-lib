@@ -1,6 +1,6 @@
 {
   "name": "pyramid-game-lib",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "TypeScript library for building simple 3D games",
   "main": "dist/pyramid-game-lib.cjs.js",
   "module": "dist/pyramid-game-lib.esm.js",
@@ -16,6 +16,7 @@
     "@babel/preset-env": "^7.19.3",
     "@babel/preset-typescript": "^7.18.6",
     "@preconstruct/cli": "^2.2.2",
+    "babel-plugin-inline-import": "^3.0.0",
     "typescript": "^4.8.4"
   },
   "dependencies": {
