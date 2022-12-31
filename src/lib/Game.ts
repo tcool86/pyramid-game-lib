@@ -3,7 +3,6 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import Stage from './Stage';
 import Menu from './Menu';
 import { Create } from './Create';
-import { TriggerOptions, TriggerEntity } from './Entities/Triggers';
 import Gamepad, { ControllerInput } from './Gamepad';
 
 import { Clock } from 'three';
@@ -13,15 +12,14 @@ export interface LoopInterface {
 	ticks: number;
 	inputs: ControllerInput[];
 	stage: Stage;
+	globals: Globals;
 }
 
 export interface SetupInterface {
-	triggers: {
-		createAreaTrigger(options: TriggerOptions): TriggerEntity;
-	};
-	materials: {
-		metal: THREE.Material;
-	};
+	commands: {
+		create: Function;
+	},
+	globals: Globals;
 }
 
 interface GameOptions {
@@ -102,7 +100,8 @@ class PyramidGame {
 		this._loop({
 			ticks,
 			inputs,
-			stage: this.stage()
+			stage: this.stage(),
+			globals: this._globals
 		});
 
 		this.stage().render();
@@ -115,6 +114,7 @@ class PyramidGame {
 		const commands = Create(this.stage());
 		this._setup({
 			commands,
+			globals: this._globals
 		});
 	}
 
