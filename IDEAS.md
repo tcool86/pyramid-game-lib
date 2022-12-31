@@ -35,10 +35,10 @@ class MyBox {
         this.rotateX(ticks/1000);
     }
 
- @Collision('player')
- destroyBox({ destroy }) {
-  destroy(this);
- }
+    @Collision('player')
+    destroyBox({ destroy }) {
+        destroy(this);
+    }
 }
 
 @Actor({
@@ -50,7 +50,7 @@ class MyPlayer {
         const { p1 } = input;
 
         const movement = new Vector3(); // Is this necessary?
-        // should the developer worry be concerned with vector creation?
+        // should the developer be concerned with vector creation?
 
         // should we alter a temporary vector from within the actor
         if (p1.vertical > 0.5) {
