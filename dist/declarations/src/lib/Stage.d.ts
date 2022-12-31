@@ -14,7 +14,10 @@ export default class Stage {
     players: Map<string, PyramidActor>;
     constructor(world: RAPIER.World);
     addChild(id: string, child: any): void;
-    update(delta: number): void;
+    update({ delta, inputs }: {
+        delta: number;
+        inputs: any;
+    }): void;
     updateColliders(): void;
     updateIntersections(player: PyramidActor): void;
     render(): void;

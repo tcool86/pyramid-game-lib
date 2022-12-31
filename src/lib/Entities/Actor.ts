@@ -176,8 +176,7 @@ export class PyramidActor extends Entity {
 		this.animationIndex = animationIndex;
 	}
 
-	update(delta: number) {
-		super.update(delta);
+	update({ delta, inputs }: { delta: number, inputs: any }) {
 		const translationVector: Vector3 = this.body.translation();
 		const rotationVector: Rotation = this.body.rotation();
 		this.object.position.set(translationVector.x, translationVector.y - 1, translationVector.z);
@@ -188,5 +187,6 @@ export class PyramidActor extends Entity {
 			this.debug?.rotation.set(this.object.rotation.x, this.object.rotation.y, this.object.rotation.z);
 		}
 		this.mixer.update(delta);
+		super.update({ delta, inputs });
 	}
 }

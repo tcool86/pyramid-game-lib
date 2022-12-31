@@ -45,5 +45,8 @@ export default class Entity implements EntityBuilder {
     rotateZ(amount: number): void;
     angularVelocity(vector: Vector3): void;
     applyMaterial(texturePath: string | null, color: number, repeat: Vector2): void;
-    update(_delta: number): void;
+    update({ delta, inputs }: {
+        delta: number;
+        inputs: any;
+    }): void;
 }

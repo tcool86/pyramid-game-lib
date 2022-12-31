@@ -44,6 +44,9 @@ export declare class PyramidActor extends Entity {
     rotateY(amount: number): void;
     rotateZ(amount: number): void;
     animate(animationIndex: number): void;
-    update(delta: number): void;
+    update({ delta, inputs }: {
+        delta: number;
+        inputs: any;
+    }): void;
 }
 export {};

@@ -103,6 +103,40 @@ class RenderPass extends Pass.Pass {
   }
 }
 
+// TODO: types here seem unecessary
+
+function classType(classInstance) {
+  if (!(typeof classInstance?.constructor === 'function')) {
+    return null;
+  }
+  return classInstance.constructor.name;
+}
+function determineEntity(classInstance) {
+  if (classType(classInstance) !== null) {
+    return classInstance._create;
+  }
+}
+async function createInternal(classInstance, parameters, stage) {
+  const fn = determineEntity(classInstance);
+  if (classType(classInstance) !== null) {
+    return fn({
+      classInstance: classInstance,
+      parameters,
+      stage
+    });
+  }
+  return fn(classInstance, stage);
+}
+async function Create(stage) {
+  return {
+    create: async (entityClass, parameters = {}) => {
+      // create exposed to consumer
+      const classInstance = new entityClass();
+      return await createInternal(classInstance, parameters, stage);
+    }
+  };
+}
+
 class Stage {
   constructor(world) {
     const scene = new THREE__namespace.Scene();
@@ -164,19 +198,27 @@ class Stage {
   }
   addChild(id, child) {
     if (child._setup) {
+      const commands = Create(this);
       child._setup({
-        entity: child
+        entity: child,
+        commands
       });
     }
     this.children.set(id, child);
   }
-  update(delta) {
+  update({
+    delta,
+    inputs
+  }) {
     this.world.step();
     const entityIterator = this.children.entries();
     let entityWrapper;
     while (entityWrapper = entityIterator.next().value) {
       const [, entity] = entityWrapper;
-      entity.update(delta);
+      entity.update({
+        delta,
+        inputs
+      });
     }
     this.updateColliders();
   }
@@ -227,42 +269,9 @@ class Stage {
   }
   getPlayer() {
     // return player node
+    // TODO: id should be dynamic
     return this.players.get('test-id');
   }
-}
-
-// TODO: types here seem unecessary
-
-function classType(classInstance) {
-  if (!(typeof classInstance?.constructor === 'function')) {
-    return null;
-  }
-  return classInstance.constructor.name;
-}
-function determineEntity(classInstance) {
-  if (classType(classInstance) !== null) {
-    return classInstance._create;
-  }
-}
-async function createInternal(classInstance, parameters, stage) {
-  const fn = determineEntity(classInstance);
-  if (classType(classInstance) !== null) {
-    return fn({
-      classInstance: classInstance,
-      parameters,
-      stage
-    });
-  }
-  return fn(classInstance, stage);
-}
-async function Create(stage) {
-  return {
-    create: async (entityClass, parameters = {}) => {
-      // create exposed to consumer
-      const classInstance = new entityClass();
-      return await createInternal(classInstance, parameters, stage);
-    }
-  };
 }
 
 class Gamepad {
@@ -420,7 +429,10 @@ class PyramidGame {
   async gameLoop(self) {
     const inputs = this.gamepad.getInputs();
     const ticks = this.clock.getDelta();
-    this.stage().update(ticks);
+    this.stage().update({
+      delta: ticks,
+      inputs
+    });
     const player = this.stage().getPlayer() ?? {
       move: () => {}
     };
@@ -656,7 +668,10 @@ class Entity {
     }
     this.material = material;
   }
-  update(_delta) {
+  update({
+    delta,
+    inputs
+  }) {
     const translationVector = this.body.translation();
     const rotationVector = this.body.rotation();
     if (this.mesh) {
@@ -677,7 +692,8 @@ class Entity {
     if (this._loop) {
       this._loop({
         entity: this,
-        delta: _delta
+        delta,
+        inputs
       });
     }
   }
@@ -842,8 +858,10 @@ class PyramidActor extends Entity {
     this.actions[previousIndex].stop();
     this.animationIndex = animationIndex;
   }
-  update(delta) {
-    super.update(delta);
+  update({
+    delta,
+    inputs
+  }) {
     const translationVector = this.body.translation();
     const rotationVector = this.body.rotation();
     this.object.position.set(translationVector.x, translationVector.y - 1, translationVector.z);
@@ -854,6 +872,10 @@ class PyramidActor extends Entity {
       this.debug?.rotation.set(this.object.rotation.x, this.object.rotation.y, this.object.rotation.z);
     }
     this.mixer.update(delta);
+    super.update({
+      delta,
+      inputs
+    });
   }
 }
 

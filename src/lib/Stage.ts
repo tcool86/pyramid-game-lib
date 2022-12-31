@@ -8,6 +8,7 @@ import RenderPass from './rendering/RenderPass';
 import Entity from './Entities/Entity';
 import { TriggerEntity } from './Entities/Triggers';
 import { PyramidActor } from './Entities/Actor';
+import { Create } from './Create';
 
 interface EntityColliderData {
 	id: string;
@@ -88,20 +89,22 @@ export default class Stage {
 
 	addChild(id: string, child: any) {
 		if (child._setup) {
+			const commands = Create(this);
 			child._setup({
-				entity: child
+				entity: child,
+				commands
 			});
 		}
 		this.children.set(id, child);
 	}
 
-	update(delta: number) {
+	update({ delta, inputs }: { delta: number, inputs: any }) {
 		this.world.step();
 		const entityIterator = this.children.entries();
 		let entityWrapper;
 		while (entityWrapper = entityIterator.next().value) {
 			const [, entity] = entityWrapper;
-			entity.update(delta);
+			entity.update({ delta, inputs });
 		}
 		this.updateColliders();
 	}
@@ -155,6 +158,7 @@ export default class Stage {
 
 	getPlayer() {
 		// return player node
+		// TODO: id should be dynamic
 		return this.players.get('test-id');
 	}
 

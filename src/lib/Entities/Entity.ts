@@ -193,7 +193,7 @@ export default class Entity implements EntityBuilder {
 		this.material = material;
 	}
 
-	update(_delta: number) {
+	update({ delta, inputs }: { delta: number, inputs: any }) {
 		const translationVector: RAPIER.Vector = this.body.translation();
 		const rotationVector: RAPIER.Rotation = this.body.rotation();
 		if (this.mesh) {
@@ -214,7 +214,8 @@ export default class Entity implements EntityBuilder {
 		if (this._loop) {
 			this._loop({
 				entity: this,
-				delta: _delta
+				delta,
+				inputs
 			});
 		}
 	}

@@ -89,7 +89,10 @@ class PyramidGame {
 	async gameLoop(self: PyramidGame) {
 		const inputs = this.gamepad.getInputs();
 		const ticks = this.clock.getDelta();
-		this.stage().update(ticks);
+		this.stage().update({
+			delta: ticks,
+			inputs
+		});
 
 		const player = this.stage().getPlayer() ?? { move: () => { } };
 		this._loop({
