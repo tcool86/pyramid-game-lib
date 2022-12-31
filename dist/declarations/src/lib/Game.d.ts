@@ -1,19 +1,17 @@
 import Stage from './Stage';
-import { TriggerOptions, TriggerEntity } from './Entities/Triggers';
 import { ControllerInput } from './Gamepad';
 import Globals from './Globals';
 export interface LoopInterface {
     ticks: number;
     inputs: ControllerInput[];
     stage: Stage;
+    globals: Globals;
 }
 export interface SetupInterface {
-    triggers: {
-        createAreaTrigger(options: TriggerOptions): TriggerEntity;
+    commands: {
+        create: Function;
     };
-    materials: {
-        metal: THREE.Material;
-    };
+    globals: Globals;
 }
 declare function Game({ app, globals }: {
     app: HTMLElement;

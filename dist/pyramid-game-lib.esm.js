@@ -408,7 +408,8 @@ class PyramidGame {
     this._loop({
       ticks,
       inputs,
-      stage: this.stage()
+      stage: this.stage(),
+      globals: this._globals
     });
     this.stage().render();
     requestAnimationFrame(() => {
@@ -418,7 +419,8 @@ class PyramidGame {
   async gameSetup() {
     const commands = Create(this.stage());
     this._setup({
-      commands
+      commands,
+      globals: this._globals
     });
   }
   stage() {
