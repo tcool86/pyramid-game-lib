@@ -61,6 +61,7 @@ export function createBox({ classInstance, parameters, stage }: CreationParamete
 	}
 	entity.debugColor = options.debugColor;
 	entity.showDebug = options.showDebug;
+	entity.collisionKey = options?.collisionKey;
 
 	stage.addChild(entity.id, entity);
 

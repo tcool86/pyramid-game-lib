@@ -29,6 +29,7 @@ export interface ActorOptions extends BaseOptions {
 interface ActorInitialization {
     stage: Stage;
     payload: any;
+    tag: string;
 }
 export declare class PyramidActor extends Entity {
     object: THREE.Group;
@@ -36,7 +37,7 @@ export declare class PyramidActor extends Entity {
     currentAction?: THREE.AnimationAction;
     animationIndex: number;
     mixer: THREE.AnimationMixer;
-    constructor({ stage, payload }: ActorInitialization);
+    constructor({ stage, payload, tag }: ActorInitialization);
     move(moveVector: Vector3): void;
     rotateInDirection(moveVector: Vector3): void;
     rotate(rotation: Vector3): void;

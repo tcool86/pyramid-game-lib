@@ -41,21 +41,6 @@ export default class Stage {
 		const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
 		scene.add(ambientLight);
 
-		// const pointLight = new THREE.PointLight(0xFFF, 5.0, 50.0);
-		// pointLight.position.set(0, 1, 0);
-		// scene.add(pointLight);
-
-		// const spotLight = new THREE.SpotLight(0xffffff);
-		// spotLight.name = 'Spot Light';
-		// spotLight.penumbra = 1;
-		// spotLight.position.set(0, 100, 0);
-		// spotLight.castShadow = true;
-		// spotLight.shadow.camera.near = 0.1;
-		// spotLight.shadow.camera.far = 2000;
-		// spotLight.shadow.mapSize.width = 1024;
-		// spotLight.shadow.mapSize.height = 1024;
-		// scene.add(spotLight);
-
 		const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 		directionalLight.name = 'Light';
 		directionalLight.position.set(0, 100, 0);
@@ -111,7 +96,9 @@ export default class Stage {
 
 	updateColliders() {
 		if (!this.players) return;
+
 		for (let [, player] of this.players) {
+			const { _ref } = player;
 			this.world.contactsWith(player.body.collider(0), (otherCollider) => {
 				const object = otherCollider.parent();
 				const userData: EntityColliderData = object?.userData as EntityColliderData;
@@ -123,10 +110,17 @@ export default class Stage {
 				if (id === null) {
 					console.log('no id on collider');
 					return;
-				} else {
-					const entity = this.children.get(id) as Entity;
-					const material = entity.debug?.material as THREE.MeshPhongMaterial;
-					material.color?.set(0x009900);
+				}
+				const entity = this.children.get(id) as Entity;
+				const material = entity.debug?.material as THREE.MeshPhongMaterial;
+				material.color?.set(0x009900);
+				const collisionHandler = _ref.__proto__._collision.get(entity.collisionKey);
+				if (collisionHandler) {
+					const { name, original } = collisionHandler;
+					original.bind(_ref)({
+						entity: player,
+						target: entity
+					});
 				}
 			});
 			this.updateIntersections(player);
@@ -155,11 +149,4 @@ export default class Stage {
 	render() {
 		this.composer.render();
 	}
-
-	getPlayer() {
-		// return player node
-		// TODO: id should be dynamic
-		return this.players.get('test-id');
-	}
-
 }

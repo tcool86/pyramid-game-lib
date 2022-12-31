@@ -13,4 +13,5 @@ export type CreationParameters = { classInstance: any, parameters: AnyOption, st
 export interface BaseOptions {
 	showDebug: boolean;
 	debugColor: number;
+	collisionKey?: string;
 }

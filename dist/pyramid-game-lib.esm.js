@@ -125,22 +125,6 @@ class Stage {
     scene.background = new THREE.Color(0x5843c1);
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
-
-    // const pointLight = new THREE.PointLight(0xFFF, 5.0, 50.0);
-    // pointLight.position.set(0, 1, 0);
-    // scene.add(pointLight);
-
-    // const spotLight = new THREE.SpotLight(0xffffff);
-    // spotLight.name = 'Spot Light';
-    // spotLight.penumbra = 1;
-    // spotLight.position.set(0, 100, 0);
-    // spotLight.castShadow = true;
-    // spotLight.shadow.camera.near = 0.1;
-    // spotLight.shadow.camera.far = 2000;
-    // spotLight.shadow.mapSize.width = 1024;
-    // spotLight.shadow.mapSize.height = 1024;
-    // scene.add(spotLight);
-
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.name = 'Light';
     directionalLight.position.set(0, 100, 0);
@@ -199,6 +183,9 @@ class Stage {
   updateColliders() {
     if (!this.players) return;
     for (let [, player] of this.players) {
+      const {
+        _ref
+      } = player;
       this.world.contactsWith(player.body.collider(0), otherCollider => {
         const object = otherCollider.parent();
         const userData = object?.userData;
@@ -214,10 +201,20 @@ class Stage {
         if (id === null) {
           console.log('no id on collider');
           return;
-        } else {
-          const entity = this.children.get(id);
-          const material = entity.debug?.material;
-          material.color?.set(0x009900);
+        }
+        const entity = this.children.get(id);
+        const material = entity.debug?.material;
+        material.color?.set(0x009900);
+        const collisionHandler = _ref.__proto__._collision.get(entity.collisionKey);
+        if (collisionHandler) {
+          const {
+            name,
+            original
+          } = collisionHandler;
+          original.bind(_ref)({
+            entity: player,
+            target: entity
+          });
         }
       });
       this.updateIntersections(player);
@@ -240,11 +237,6 @@ class Stage {
   }
   render() {
     this.composer.render();
-  }
-  getPlayer() {
-    // return player node
-    // TODO: id should be dynamic
-    return this.players.get('test-id');
   }
 }
 
@@ -345,12 +337,16 @@ class Gamepad {
   }
 }
 
-function Game(app) {
+function Game({
+  app,
+  globals
+}) {
   return target => {
     const gameInstance = new target();
     const pyramidInstance = new PyramidGame({
       loop: gameInstance.loop.bind(gameInstance),
-      setup: gameInstance.setup.bind(gameInstance)
+      setup: gameInstance.setup.bind(gameInstance),
+      globals: globals
     });
     pyramidInstance.ready.then(() => {
       app.appendChild(pyramidInstance.domElement());
@@ -363,12 +359,14 @@ class PyramidGame {
   currentStage = 0;
   constructor({
     loop,
-    setup
+    setup,
+    globals
   }) {
     this.gamepad = new Gamepad();
     this.clock = new Clock();
     this._loop = loop;
     this._setup = setup;
+    this._globals = globals;
     this.ready = new Promise(async (resolve, reject) => {
       try {
         const world = await this.loadPhysics();
@@ -407,13 +405,9 @@ class PyramidGame {
       delta: ticks,
       inputs
     });
-    const player = this.stage().getPlayer() ?? {
-      move: () => {}
-    };
     this._loop({
       ticks,
       inputs,
-      player,
       stage: this.stage()
     });
     this.stage().render();
@@ -738,12 +732,17 @@ async function createActor({
 }) {
   const loader = new ActorLoader();
   const {
-    _options
+    _options,
+    constructor
   } = classInstance;
+  const {
+    name
+  } = constructor;
   const payload = await loader.load(_options.files);
   const actor = new PyramidActor({
     stage,
-    payload
+    payload,
+    tag: name
   });
   if (classInstance.loop) {
     actor._loop = classInstance.loop.bind(classInstance);
@@ -751,8 +750,10 @@ async function createActor({
   if (classInstance.setup) {
     actor._setup = classInstance.setup.bind(classInstance);
   }
+  actor._ref = classInstance;
   stage.addChild(actor.id, actor);
-  // TODO: condition for player
+
+  // TODO: for now all actors are considered "players"
   stage.players.set(actor.id, actor);
   return actor;
 }
@@ -766,9 +767,10 @@ class PyramidActor extends Entity {
   actions = [];
   constructor({
     stage,
-    payload
+    payload,
+    tag
   }) {
-    super(stage, 'player-test');
+    super(stage, tag);
     const {
       actions,
       mixer,
@@ -790,7 +792,6 @@ class PyramidActor extends Entity {
     this.body.setAdditionalMass(100, true);
     this.body.setBodyType(RigidBodyType.KinematicVelocityBased);
     stage.scene.add(this.object);
-    this.id = 'test-id';
     return this;
   }
   move(moveVector) {
@@ -856,12 +857,10 @@ class PyramidActor extends Entity {
 function Collision(key) {
   return (target, name, descriptor) => {
     const original = descriptor.value;
-    console.log({
-      target,
+    target._collision ??= new Map();
+    target._collision.set(key, {
       name,
-      descriptor,
-      original,
-      key
+      original
     });
   };
 }
@@ -922,6 +921,7 @@ function createBox({
   }
   entity.debugColor = options.debugColor;
   entity.showDebug = options.showDebug;
+  entity.collisionKey = options?.collisionKey;
   stage.addChild(entity.id, entity);
   return entity;
 }

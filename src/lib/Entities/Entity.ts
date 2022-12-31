@@ -36,10 +36,12 @@ export default class Entity implements EntityBuilder {
 	debug: THREE.Mesh | null;
 	debugColor: THREE.ColorRepresentation;
 	showDebug: boolean;
+	collisionKey?: string;
 	stageRef: Stage;
 	tag: string;
 	_loop?: Function;
 	_setup?: Function;
+	_ref: any;
 
 	static instanceCounter = 0;
 

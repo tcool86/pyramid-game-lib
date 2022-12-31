@@ -21,5 +21,4 @@ export default class Stage {
     updateColliders(): void;
     updateIntersections(player: PyramidActor): void;
     render(): void;
-    getPlayer(): PyramidActor | undefined;
 }

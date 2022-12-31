@@ -14,4 +14,5 @@ export declare type CreationParameters = {
 export interface BaseOptions {
     showDebug: boolean;
     debugColor: number;
+    collisionKey?: string;
 }

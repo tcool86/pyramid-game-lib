@@ -70,17 +70,20 @@ export class ActorLoader {
 
 export async function createActor({ classInstance, parameters, stage }: any) {
 	const loader = new ActorLoader();
-	const { _options } = classInstance;
+	const { _options, constructor } = classInstance;
+	const { name } = constructor;
 	const payload = await loader.load(_options.files);
-	const actor: PyramidActor = new PyramidActor({ stage, payload });
+	const actor: PyramidActor = new PyramidActor({ stage, payload, tag: name });
 	if (classInstance.loop) {
 		actor._loop = classInstance.loop.bind(classInstance);
 	}
 	if (classInstance.setup) {
 		actor._setup = classInstance.setup.bind(classInstance);
 	}
+	actor._ref = classInstance;
 	stage.addChild(actor.id, actor);
-	// TODO: condition for player
+
+	// TODO: for now all actors are considered "players"
 	stage.players.set(actor.id, actor);
 	return actor;
 }
@@ -100,6 +103,7 @@ export interface ActorOptions extends BaseOptions {
 interface ActorInitialization {
 	stage: Stage;
 	payload: any;
+	tag: string;
 }
 
 export class PyramidActor extends Entity {
@@ -109,8 +113,8 @@ export class PyramidActor extends Entity {
 	animationIndex: number;
 	mixer: THREE.AnimationMixer;
 
-	constructor({ stage, payload }: ActorInitialization) {
-		super(stage, 'player-test');
+	constructor({ stage, payload, tag }: ActorInitialization) {
+		super(stage, tag);
 		const { actions, mixer, object } = payload;
 
 		const position = object.position;
@@ -132,7 +136,7 @@ export class PyramidActor extends Entity {
 		this.body.setAdditionalMass(100, true);
 		this.body.setBodyType(RigidBodyType.KinematicVelocityBased);
 		stage.scene.add(this.object);
-		this.id = 'test-id';
+
 		return this;
 	}
 

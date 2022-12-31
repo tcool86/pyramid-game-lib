@@ -7,6 +7,7 @@ import { TriggerOptions, TriggerEntity } from './Entities/Triggers';
 import Gamepad, { ControllerInput } from './Gamepad';
 
 import { Clock } from 'three';
+import Globals from './Globals';
 
 export interface LoopInterface {
 	ticks: number;
@@ -26,14 +27,16 @@ export interface SetupInterface {
 interface GameOptions {
 	loop: ({ }: LoopInterface) => void;
 	setup: ({ }: SetupInterface) => void;
+	globals: Globals;
 }
 
-function Game(app: HTMLElement) {
+function Game({ app, globals }: { app: HTMLElement, globals: Globals }) {
 	return (target: any) => {
 		const gameInstance = new target();
 		const pyramidInstance = new PyramidGame({
 			loop: gameInstance.loop.bind(gameInstance),
 			setup: gameInstance.setup.bind(gameInstance),
+			globals: globals
 		});
 		pyramidInstance.ready.then(() => {
 			app.appendChild(pyramidInstance.domElement());
@@ -46,17 +49,19 @@ class PyramidGame {
 	stages: Stage[] = [];
 	currentStage: number = 0;
 	menu?: Menu;
+	_globals: Globals;
 	_loop: Function;
 	_setup: Function;
 	gamepad: Gamepad;
 	clock: Clock;
 	ready: Promise<boolean>;
 
-	constructor({ loop, setup }: GameOptions) {
+	constructor({ loop, setup, globals }: GameOptions) {
 		this.gamepad = new Gamepad();
 		this.clock = new Clock();
 		this._loop = loop;
 		this._setup = setup;
+		this._globals = globals;
 		this.ready = new Promise(async (resolve, reject) => {
 			try {
 				const world = await this.loadPhysics();
@@ -94,11 +99,9 @@ class PyramidGame {
 			inputs
 		});
 
-		const player = this.stage().getPlayer() ?? { move: () => { } };
 		this._loop({
 			ticks,
 			inputs,
-			player,
 			stage: this.stage()
 		});
 
@@ -114,7 +117,6 @@ class PyramidGame {
 			commands,
 		});
 	}
-
 
 	stage() {
 		return this.stages[this.currentStage];
