@@ -203,6 +203,10 @@ class Stage {
         delta,
         inputs
       });
+      const {
+        _ref
+      } = entity;
+      if (_ref.__proto__._collision) ;
     }
     this.updateColliders();
   }
@@ -927,6 +931,7 @@ function createBox({
   if (classInstance.setup) {
     entity._setup = classInstance.setup.bind(classInstance);
   }
+  entity._ref = classInstance;
   const options = Object.assign({}, boxDefaults, _options, parameters);
   const {
     width,
@@ -986,6 +991,7 @@ function createSphere({
   if (classInstance.setup) {
     entity._setup = classInstance.setup.bind(classInstance);
   }
+  entity._ref = classInstance;
   const options = Object.assign({}, sphereDefaults, _options, parameters);
   const radius = options.radius;
   const position = options.position;
@@ -1039,6 +1045,7 @@ function createAreaTrigger({
   if (classInstance.setup) {
     entity._setup = classInstance.setup.bind(classInstance);
   }
+  entity._ref = classInstance;
   const options = Object.assign({}, triggerDefaults, _options, parameters);
   const {
     width,

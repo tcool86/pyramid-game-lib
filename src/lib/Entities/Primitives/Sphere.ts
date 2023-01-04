@@ -36,6 +36,7 @@ export function createSphere({ classInstance, parameters, stage }: CreationParam
 	if (classInstance.setup) {
 		entity._setup = classInstance.setup.bind(classInstance);
 	}
+	entity._ref = classInstance;
 
 	const options = Object.assign({}, sphereDefaults, _options, parameters);
 

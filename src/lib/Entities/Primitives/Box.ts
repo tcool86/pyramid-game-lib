@@ -39,6 +39,7 @@ export function createBox({ classInstance, parameters, stage }: CreationParamete
 	if (classInstance.setup) {
 		entity._setup = classInstance.setup.bind(classInstance);
 	}
+	entity._ref = classInstance;
 
 	const options = Object.assign({}, boxDefaults, _options, parameters);
 

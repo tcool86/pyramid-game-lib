@@ -90,6 +90,10 @@ export default class Stage {
 		while (entityWrapper = entityIterator.next().value) {
 			const [, entity] = entityWrapper;
 			entity.update({ delta, inputs });
+			const { _ref } = entity;
+			if (_ref.__proto__._collision) {
+				// TODO: Add custom collision handler for all entities
+			}
 		}
 		this.updateColliders();
 	}

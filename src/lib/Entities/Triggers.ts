@@ -47,6 +47,7 @@ export function createAreaTrigger({ classInstance, parameters, stage }: Creation
 	if (classInstance.setup) {
 		entity._setup = classInstance.setup.bind(classInstance);
 	}
+	entity._ref = classInstance;
 
 	const options = Object.assign({}, triggerDefaults, _options, parameters);
 
