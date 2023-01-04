@@ -2,7 +2,7 @@ import Entity from '../Entity';
 import { Vector3, Vector2 } from '../../Util';
 import { PrimitiveOptions } from ".";
 import { CreationParameters } from '..';
-import { Color } from 'three';
+import { Color, PointLight } from 'three';
 
 export interface SphereOptions extends PrimitiveOptions {
 	radius: number;
@@ -23,6 +23,7 @@ const sphereDefaults: SphereOptions = {
 	color: Color.NAMES.white,
 	texturePath: null,
 	textureSize: new Vector2(1, 1),
+	glow: false,
 }
 
 export function createSphere({ classInstance, parameters, stage }: CreationParameters) {
@@ -53,6 +54,13 @@ export function createSphere({ classInstance, parameters, stage }: CreationParam
 
 	entity.debugColor = options.debugColor;
 	entity.showDebug = options.showDebug;
+
+	if (options.glow) {
+		// TODO: give more customizable options for "glow"
+		const light = new PointLight(color, 1, 100);
+		light.position.set(0, 0, 0);
+		entity.mesh?.add(light);
+	}
 
 	stage.addChild(entity.id, entity);
 

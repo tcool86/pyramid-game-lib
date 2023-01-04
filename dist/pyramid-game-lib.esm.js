@@ -1,6 +1,6 @@
 import RAPIER, { RigidBodyType, Vector3 as Vector3$1 } from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
-import { WebGLRenderTarget, Clock, Color } from 'three';
+import { WebGLRenderTarget, Clock, Color, PointLight } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass';
@@ -941,7 +941,8 @@ const sphereDefaults = {
   radius: 1,
   color: Color.NAMES.white,
   texturePath: null,
-  textureSize: new Vector2(1, 1)
+  textureSize: new Vector2(1, 1),
+  glow: false
 };
 function createSphere({
   classInstance,
@@ -973,6 +974,12 @@ function createSphere({
   entity.body.setAngularDamping(0.1);
   entity.debugColor = options.debugColor;
   entity.showDebug = options.showDebug;
+  if (options.glow) {
+    // TODO: give more customizable options for "glow"
+    const light = new PointLight(color, 1, 100);
+    light.position.set(0, 0, 0);
+    entity.mesh?.add(light);
+  }
   stage.addChild(entity.id, entity);
   return entity;
 }

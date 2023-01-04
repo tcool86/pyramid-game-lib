@@ -967,7 +967,8 @@ const sphereDefaults = {
   radius: 1,
   color: THREE.Color.NAMES.white,
   texturePath: null,
-  textureSize: new Vector2(1, 1)
+  textureSize: new Vector2(1, 1),
+  glow: false
 };
 function createSphere({
   classInstance,
@@ -999,6 +1000,12 @@ function createSphere({
   entity.body.setAngularDamping(0.1);
   entity.debugColor = options.debugColor;
   entity.showDebug = options.showDebug;
+  if (options.glow) {
+    // TODO: give more customizable options for "glow"
+    const light = new THREE.PointLight(color, 1, 100);
+    light.position.set(0, 0, 0);
+    entity.mesh?.add(light);
+  }
   stage.addChild(entity.id, entity);
   return entity;
 }

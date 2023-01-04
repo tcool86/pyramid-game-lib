@@ -15,4 +15,5 @@ export interface PrimitiveOptions extends BaseOptions {
     material?: Material;
     isSensor?: boolean;
     fixed?: boolean;
+    glow?: boolean;
 }
