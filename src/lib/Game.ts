@@ -51,12 +51,14 @@ class PyramidGame {
 	_loop: Function;
 	_setup: Function;
 	gamepad: Gamepad;
+	pause: boolean;
 	clock: Clock;
 	ready: Promise<boolean>;
 
 	constructor({ loop, setup, globals }: GameOptions) {
 		this.gamepad = new Gamepad();
 		this.clock = new Clock();
+		this.pause = false;
 		this._loop = loop;
 		this._setup = setup;
 		this._globals = globals;
@@ -92,16 +94,19 @@ class PyramidGame {
 	async gameLoop(self: PyramidGame) {
 		const inputs = this.gamepad.getInputs();
 		const ticks = this.clock.getDelta();
-		this.stage().update({
-			delta: ticks,
-			inputs
-		});
+		if (!this.pause) {
+			this.stage().update({
+				delta: ticks,
+				inputs
+			});
+		}
 
 		this._loop({
 			ticks,
 			inputs,
 			stage: this.stage(),
-			globals: this._globals
+			globals: this._globals,
+			game: this,
 		});
 
 		this.stage().render();
