@@ -177,7 +177,8 @@ class Stage {
     this.scene = scene;
     this.world = world;
     this.children = new Map();
-    this.triggers = new Map();
+    this.colliders = new Map();
+    this.intersectors = new Map();
     this.players = new Map();
   }
   addChild(id, child) {
@@ -189,6 +190,16 @@ class Stage {
       });
     }
     this.children.set(id, child);
+    const {
+      _ref
+    } = child;
+    if (_ref.__proto__._collision && !child.isSensor) {
+      this.colliders.set(child.id, child);
+    }
+    if (child.isSensor) {
+      this.intersectors.set(child.id, child);
+      console.log(this.intersectors);
+    }
   }
   update({
     delta,
@@ -203,38 +214,42 @@ class Stage {
         delta,
         inputs
       });
-      const {
-        _ref
-      } = entity;
-      if (_ref.__proto__._collision) ;
     }
+    this.updateCollision();
+  }
+  updateCollision() {
     this.updateColliders();
+    this.updateIntersectors();
+  }
+  getEntityFromCollider(collider) {
+    const parent = collider.parent();
+    const userData = parent?.userData;
+    if (!userData) {
+      console.log('no user data on collider');
+      return null;
+    }
+    const {
+      id
+    } = userData ?? {
+      id: null
+    };
+    if (id === null) {
+      console.log('no id on collider');
+      return null;
+    }
+    const entity = this.children.get(id);
+    return entity;
   }
   updateColliders() {
-    if (!this.players) return;
-    for (let [, player] of this.players) {
+    for (let [, collider] of this.colliders) {
       const {
         _ref
-      } = player;
-      this.world.contactsWith(player.body.collider(0), otherCollider => {
-        const object = otherCollider.parent();
-        const userData = object?.userData;
-        if (!userData) {
-          console.log('no user data on collider');
+      } = collider;
+      this.world.contactsWith(collider.body.collider(0), otherCollider => {
+        const entity = this.getEntityFromCollider(otherCollider);
+        if (!entity) {
           return;
         }
-        const {
-          id
-        } = userData ?? {
-          id: null
-        };
-        if (id === null) {
-          console.log('no id on collider');
-          return;
-        }
-        const entity = this.children.get(id);
-        const material = entity.debug?.material;
-        material.color?.set(0x009900);
         const collisionHandler = _ref.__proto__._collision.get(entity.collisionKey);
         if (collisionHandler) {
           const {
@@ -242,27 +257,55 @@ class Stage {
             original
           } = collisionHandler;
           original.bind(_ref)({
-            entity: player,
+            entity: collider,
             target: entity
           });
         }
       });
-      this.updateIntersections(player);
     }
   }
-  updateIntersections(player) {
-    if (!this.triggers) return;
-    for (let [, trigger] of this.triggers) {
-      const isColliding = this.world.intersectionPair(trigger.body.collider(0), player.body.collider(0));
-      if (isColliding) {
-        if (trigger.onEnter) {
-          trigger.onEnter();
-        }
-      } else {
-        if (trigger.onExit) {
-          trigger.onExit();
+  isTrigger(entity) {
+    return 'onEnter' in entity && 'onExit' in entity && 'hasEntered' in entity;
+  }
+
+  // TODO: cleanup abstraction:
+  /*******
+    the idea behind area triggers and standard sensor based intersectors is that triggers
+    built-in functionality for determining when an object enters and exits.
+  ********/
+  updateIntersectors() {
+    if (!this.intersectors) return;
+    for (let [, intersector] of this.intersectors) {
+      const {
+        _ref
+      } = intersector;
+      if (this.isTrigger(intersector)) {
+        if (intersector.onExit && intersector.hasEntered) {
+          intersector.onExit();
+          console.log('exited area');
         }
       }
+      this.world.intersectionsWith(intersector.body.collider(0), otherCollider => {
+        const entity = this.getEntityFromCollider(otherCollider);
+        if (entity && entity.collisionKey) {
+          const collisionHandler = _ref.__proto__._collision.get(entity.collisionKey);
+          if (collisionHandler) {
+            const {
+              name,
+              original
+            } = collisionHandler;
+            original.bind(_ref)({
+              entity: intersector,
+              target: entity
+            });
+          }
+        }
+        if (this.isTrigger(intersector)) {
+          if (intersector.onEnter) {
+            intersector.onEnter();
+          }
+        }
+      });
     }
   }
   render() {
@@ -513,6 +556,7 @@ class Entity {
     this.debug = null;
     this.debugColor = 0xFFFFFF;
     this.showDebug = false;
+    this.isSensor = false;
     this.id = `e-${Entity.instanceCounter++}`;
   }
   rectangularMesh(size, position) {
@@ -912,7 +956,8 @@ const boxDefaults = {
   depth: 1,
   color: THREE.Color.NAMES.white,
   texturePath: null,
-  textureSize: new Vector2(1, 1)
+  textureSize: new Vector2(1, 1),
+  isSensor: false
 };
 function createBox({
   classInstance,
@@ -955,6 +1000,7 @@ function createBox({
   entity.debugColor = options.debugColor;
   entity.showDebug = options.showDebug;
   entity.collisionKey = options?.collisionKey;
+  entity.isSensor = options.isSensor;
   stage.addChild(entity.id, entity);
   return entity;
 }
@@ -973,7 +1019,8 @@ const sphereDefaults = {
   color: THREE.Color.NAMES.white,
   texturePath: null,
   textureSize: new Vector2(1, 1),
-  glow: false
+  glow: false,
+  isSensor: false
 };
 function createSphere({
   classInstance,
@@ -1006,6 +1053,8 @@ function createSphere({
   entity.body.setAngularDamping(0.1);
   entity.debugColor = options.debugColor;
   entity.showDebug = options.showDebug;
+  entity.collisionKey = options?.collisionKey;
+  entity.isSensor = options.isSensor;
   if (options.glow) {
     // TODO: give more customizable options for "glow"
     const light = new THREE.PointLight(color, 1, 100);
@@ -1027,7 +1076,8 @@ const triggerDefaults = {
   showDebug: false,
   position: new Vector3(0, 0, 0),
   onEnter: () => {},
-  onExit: () => {}
+  onExit: () => {},
+  hasEntered: false
 };
 function createAreaTrigger({
   classInstance,
@@ -1063,8 +1113,9 @@ function createAreaTrigger({
   entity.showDebug = options.showDebug;
   entity.onEnter = options.onEnter;
   entity.onExit = options.onExit;
+  entity.hasEntered = false;
+  entity.isSensor = true;
   stage.addChild(entity.id, entity);
-  stage.triggers.set(entity.id, entity);
   return entity;
 }
 

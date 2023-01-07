@@ -24,6 +24,7 @@ const sphereDefaults: SphereOptions = {
 	texturePath: null,
 	textureSize: new Vector2(1, 1),
 	glow: false,
+	isSensor: false
 }
 
 export function createSphere({ classInstance, parameters, stage }: CreationParameters) {
@@ -55,6 +56,9 @@ export function createSphere({ classInstance, parameters, stage }: CreationParam
 
 	entity.debugColor = options.debugColor;
 	entity.showDebug = options.showDebug;
+	entity.collisionKey = options?.collisionKey;
+
+	entity.isSensor = options.isSensor;
 
 	if (options.glow) {
 		// TODO: give more customizable options for "glow"

@@ -37,6 +37,7 @@ export default class Entity implements EntityBuilder {
 	debugColor: THREE.ColorRepresentation;
 	showDebug: boolean;
 	collisionKey?: string;
+	isSensor: boolean;
 	stageRef: Stage;
 	tag: string;
 	_loop?: Function;
@@ -51,6 +52,7 @@ export default class Entity implements EntityBuilder {
 		this.debug = null;
 		this.debugColor = 0xFFFFFF;
 		this.showDebug = false;
+		this.isSensor = false;
 		this.id = `e-${Entity.instanceCounter++}`;
 	}
 

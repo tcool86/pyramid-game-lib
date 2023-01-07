@@ -20,6 +20,7 @@ export interface TriggerOptions extends BaseOptions {
 	z?: number;
 	onEnter: Function;
 	onExit: Function;
+	hasEntered: boolean;
 }
 
 export function Trigger(options: Partial<TriggerOptions>) {
@@ -35,6 +36,7 @@ const triggerDefaults: TriggerOptions = {
 	position: new Vector3(0, 0, 0),
 	onEnter: () => { },
 	onExit: () => { },
+	hasEntered: false
 };
 
 export function createAreaTrigger({ classInstance, parameters, stage }: CreationParameters) {
@@ -66,9 +68,11 @@ export function createAreaTrigger({ classInstance, parameters, stage }: Creation
 
 	entity.onEnter = options.onEnter;
 	entity.onExit = options.onExit;
+	entity.hasEntered = false;
+
+	entity.isSensor = true;
 
 	stage.addChild(entity.id, entity);
-	stage.triggers.set(entity.id, entity);
 
 	return entity;
 }

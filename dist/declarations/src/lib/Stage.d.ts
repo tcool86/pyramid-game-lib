@@ -9,7 +9,8 @@ export default class Stage {
     scene: THREE.Scene;
     renderer: THREE.WebGLRenderer;
     composer: EffectComposer;
-    triggers: Map<string, TriggerEntity>;
+    colliders: Map<string, Entity>;
+    intersectors: Map<string, Entity>;
     children: Map<string, Entity>;
     players: Map<string, PyramidActor>;
     constructor(world: RAPIER.World);
@@ -18,7 +19,14 @@ export default class Stage {
         delta: number;
         inputs: any;
     }): void;
+    updateCollision(): void;
+    getEntityFromCollider(collider: RAPIER.Collider): Entity | null;
     updateColliders(): void;
-    updateIntersections(player: PyramidActor): void;
+    isTrigger(entity: Entity): entity is TriggerEntity;
+    /*******
+      the idea behind area triggers and standard sensor based intersectors is that triggers
+      built-in functionality for determining when an object enters and exits.
+    ********/
+    updateIntersectors(): void;
     render(): void;
 }

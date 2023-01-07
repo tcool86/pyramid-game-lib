@@ -19,7 +19,8 @@ export default class Stage {
 	scene: THREE.Scene;
 	renderer: THREE.WebGLRenderer;
 	composer: EffectComposer;
-	triggers: Map<string, TriggerEntity>;
+	colliders: Map<string, Entity>;
+	intersectors: Map<string, Entity>;
 	children: Map<string, Entity>;
 	players: Map<string, PyramidActor>;
 
@@ -68,7 +69,8 @@ export default class Stage {
 		this.scene = scene;
 		this.world = world;
 		this.children = new Map();
-		this.triggers = new Map();
+		this.colliders = new Map();
+		this.intersectors = new Map();
 		this.players = new Map();
 	}
 
@@ -81,6 +83,14 @@ export default class Stage {
 			});
 		}
 		this.children.set(id, child);
+		const { _ref } = child;
+		if (_ref.__proto__._collision && !child.isSensor) {
+			this.colliders.set(child.id, child);
+		}
+		if (child.isSensor) {
+			this.intersectors.set(child.id, child);
+			console.log(this.intersectors);
+		}
 	}
 
 	update({ delta, inputs }: { delta: number, inputs: any }) {
@@ -90,63 +100,88 @@ export default class Stage {
 		while (entityWrapper = entityIterator.next().value) {
 			const [, entity] = entityWrapper;
 			entity.update({ delta, inputs });
-			const { _ref } = entity;
-			if (_ref.__proto__._collision) {
-				// TODO: Add custom collision handler for all entities
-			}
 		}
+		this.updateCollision();
+	}
+
+	updateCollision() {
 		this.updateColliders();
+		this.updateIntersectors();
+	}
+
+	getEntityFromCollider(collider: RAPIER.Collider): Entity | null {
+		const parent = collider.parent();
+		const userData: EntityColliderData = parent?.userData as EntityColliderData;
+		if (!userData) {
+			console.log('no user data on collider');
+			return null;
+		}
+		const { id } = userData ?? { id: null };
+		if (id === null) {
+			console.log('no id on collider');
+			return null;
+		}
+		const entity = this.children.get(id) as Entity;
+		return entity;
 	}
 
 	updateColliders() {
-		if (!this.players) return;
-
-		for (let [, player] of this.players) {
-			const { _ref } = player;
-			this.world.contactsWith(player.body.collider(0), (otherCollider) => {
-				const object = otherCollider.parent();
-				const userData: EntityColliderData = object?.userData as EntityColliderData;
-				if (!userData) {
-					console.log('no user data on collider');
+		for (let [, collider] of this.colliders) {
+			const { _ref } = collider;
+			this.world.contactsWith(collider.body.collider(0), (otherCollider) => {
+				const entity = this.getEntityFromCollider(otherCollider);
+				if (!entity) {
 					return;
 				}
-				const { id } = userData ?? { id: null };
-				if (id === null) {
-					console.log('no id on collider');
-					return;
-				}
-				const entity = this.children.get(id) as Entity;
-				const material = entity.debug?.material as THREE.MeshPhongMaterial;
-				material.color?.set(0x009900);
 				const collisionHandler = _ref.__proto__._collision.get(entity.collisionKey);
 				if (collisionHandler) {
 					const { name, original } = collisionHandler;
 					original.bind(_ref)({
-						entity: player,
+						entity: collider,
 						target: entity
 					});
 				}
-			});
-			this.updateIntersections(player);
+			})
 		}
 	}
 
-	updateIntersections(player: PyramidActor) {
-		if (!this.triggers) return;
-		for (let [, trigger] of this.triggers) {
-			const isColliding = this.world.intersectionPair(
-				trigger.body.collider(0),
-				player.body.collider(0)
-			);
-			if (isColliding) {
-				if (trigger.onEnter) {
-					trigger.onEnter();
-				}
-			} else {
-				if (trigger.onExit) {
-					trigger.onExit();
+	isTrigger(entity: Entity): entity is TriggerEntity {
+		return 'onEnter' in entity && 'onExit' in entity && 'hasEntered' in entity;
+	}
+
+	// TODO: cleanup abstraction:
+	/*******
+	  the idea behind area triggers and standard sensor based intersectors is that triggers
+	  built-in functionality for determining when an object enters and exits.
+	********/
+	updateIntersectors() {
+		if (!this.intersectors) return;
+		for (let [, intersector] of this.intersectors) {
+			const { _ref } = intersector;
+			if (this.isTrigger(intersector)) {
+				if (intersector.onExit && intersector.hasEntered) {
+					intersector.onExit();
+					console.log('exited area');
 				}
 			}
+			this.world.intersectionsWith(intersector.body.collider(0), (otherCollider) => {
+				const entity = this.getEntityFromCollider(otherCollider);
+				if (entity && entity.collisionKey) {
+					const collisionHandler = _ref.__proto__._collision.get(entity.collisionKey);
+					if (collisionHandler) {
+						const { name, original } = collisionHandler;
+						original.bind(_ref)({
+							entity: intersector,
+							target: entity
+						});
+					}
+				}
+				if (this.isTrigger(intersector)) {
+					if (intersector.onEnter) {
+						intersector.onEnter();
+					}
+				}
+			});
 		}
 	}
 

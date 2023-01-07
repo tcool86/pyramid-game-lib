@@ -16,6 +16,7 @@ export interface TriggerOptions extends BaseOptions {
     z?: number;
     onEnter: Function;
     onExit: Function;
+    hasEntered: boolean;
 }
 export declare function Trigger(options: Partial<TriggerOptions>): (target: any) => void;
 export declare function createAreaTrigger({ classInstance, parameters, stage }: CreationParameters): TriggerEntity;

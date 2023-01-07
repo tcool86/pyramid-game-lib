@@ -27,6 +27,7 @@ const boxDefaults: BoxOptions = {
 	color: Color.NAMES.white,
 	texturePath: null,
 	textureSize: new Vector2(1, 1),
+	isSensor: false
 }
 
 export function createBox({ classInstance, parameters, stage }: CreationParameters) {
@@ -63,6 +64,8 @@ export function createBox({ classInstance, parameters, stage }: CreationParamete
 	entity.debugColor = options.debugColor;
 	entity.showDebug = options.showDebug;
 	entity.collisionKey = options?.collisionKey;
+
+	entity.isSensor = options.isSensor;
 
 	stage.addChild(entity.id, entity);
 

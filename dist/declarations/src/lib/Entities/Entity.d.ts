@@ -25,6 +25,7 @@ export default class Entity implements EntityBuilder {
     debugColor: THREE.ColorRepresentation;
     showDebug: boolean;
     collisionKey?: string;
+    isSensor: boolean;
     stageRef: Stage;
     tag: string;
     _loop?: Function;
