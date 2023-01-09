@@ -5,4 +5,4 @@ export interface SphereOptions extends PrimitiveOptions {
     radius: number;
 }
 export declare function Sphere(options?: Partial<SphereOptions>): (target: any) => void;
-export declare function createSphere({ classInstance, parameters, stage }: CreationParameters): Entity;
+export declare function createSphere(params: CreationParameters): Entity;

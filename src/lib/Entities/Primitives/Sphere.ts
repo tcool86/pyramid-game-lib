@@ -3,6 +3,7 @@ import { Vector3, Vector2 } from '../../Util';
 import { PrimitiveOptions } from ".";
 import { CreationParameters } from '..';
 import { Color, PointLight } from 'three';
+import { baseEntityCreation } from '../EntityCreation';
 
 export interface SphereOptions extends PrimitiveOptions {
 	radius: number;
@@ -27,19 +28,8 @@ const sphereDefaults: SphereOptions = {
 	isSensor: false
 }
 
-export function createSphere({ classInstance, parameters, stage }: CreationParameters) {
-	const { _options, constructor } = classInstance;
-
-	const entity = new Entity(stage, constructor.name);
-	if (classInstance.loop) {
-		entity._loop = classInstance.loop.bind(classInstance);
-	}
-	if (classInstance.setup) {
-		entity._setup = classInstance.setup.bind(classInstance);
-	}
-	entity._ref = classInstance;
-
-	const options = Object.assign({}, sphereDefaults, _options, parameters);
+export function createSphere(params: CreationParameters) {
+	const { entity, options, stage } = baseEntityCreation(params, sphereDefaults);
 
 	const radius = options.radius;
 	const position = options.position;

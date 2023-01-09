@@ -3,6 +3,7 @@ import { Vector3 } from '../Util';
 import { CreationParameters, BaseOptions } from '.';
 import Entity from './Entity';
 import { Color } from 'three';
+import { baseEntityCreation } from './EntityCreation';
 
 export interface TriggerEntity extends Entity {
 	onEnter?: Function;
@@ -39,19 +40,8 @@ const triggerDefaults: TriggerOptions = {
 	hasEntered: false
 };
 
-export function createAreaTrigger({ classInstance, parameters, stage }: CreationParameters) {
-	const { _options, constructor } = classInstance;
-
-	const entity: TriggerEntity = new Entity(stage, constructor.name);
-	if (classInstance.loop) {
-		entity._loop = classInstance.loop.bind(classInstance);
-	}
-	if (classInstance.setup) {
-		entity._setup = classInstance.setup.bind(classInstance);
-	}
-	entity._ref = classInstance;
-
-	const options = Object.assign({}, triggerDefaults, _options, parameters);
+export function createAreaTrigger(params: CreationParameters) {
+	const { entity, options, stage } = baseEntityCreation(params, triggerDefaults);
 
 	const { width, height, depth } = options;
 	const size = new Vector3(width, height, depth);
@@ -66,9 +56,9 @@ export function createAreaTrigger({ classInstance, parameters, stage }: Creation
 
 	entity.showDebug = options.showDebug;
 
-	entity.onEnter = options.onEnter;
-	entity.onExit = options.onExit;
-	entity.hasEntered = false;
+	(<TriggerEntity>entity).onEnter = options.onEnter;
+	(<TriggerEntity>entity).onExit = options.onExit;
+	(<TriggerEntity>entity).hasEntered = false;
 
 	entity.isSensor = true;
 

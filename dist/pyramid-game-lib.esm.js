@@ -77,8 +77,6 @@ class RenderPass extends Pass {
   }
 }
 
-// TODO: types here seem unecessary
-
 function classType(classInstance) {
   if (!(typeof classInstance?.constructor === 'function')) {
     return null;
@@ -103,8 +101,8 @@ async function createInternal(classInstance, parameters, stage) {
 }
 async function Create(stage) {
   return {
+    // create exposed to consumer
     create: async (entityClass, parameters = {}) => {
-      // create exposed to consumer
       const classInstance = new entityClass();
       return await createInternal(classInstance, parameters, stage);
     }
@@ -397,7 +395,9 @@ function Game({
     });
     pyramidInstance.ready.then(() => {
       app.appendChild(pyramidInstance.domElement());
-      gameInstance.ready.bind(gameInstance)();
+      if (gameInstance.ready) {
+        gameInstance.ready.bind(gameInstance)();
+      }
     });
   };
 }
@@ -919,6 +919,32 @@ function Collision(key) {
   };
 }
 
+const baseEntityCreation = (params, entityDefaults) => {
+  const {
+    classInstance,
+    parameters,
+    stage
+  } = params;
+  const {
+    _options,
+    constructor
+  } = classInstance;
+  const entity = new Entity(stage, constructor.name);
+  if (classInstance.loop) {
+    entity._loop = classInstance.loop.bind(classInstance);
+  }
+  if (classInstance.setup) {
+    entity._setup = classInstance.setup.bind(classInstance);
+  }
+  entity._ref = classInstance;
+  const options = Object.assign({}, entityDefaults, _options, parameters);
+  return {
+    options,
+    entity,
+    stage
+  };
+};
+
 function Box(options) {
   return target => {
     target.prototype._options = options;
@@ -937,25 +963,12 @@ const boxDefaults = {
   textureSize: new Vector2(1, 1),
   isSensor: false
 };
-function createBox({
-  classInstance,
-  parameters,
-  stage
-}) {
+function createBox(params) {
   const {
-    _options,
-    constructor
-  } = classInstance;
-  // TODO: do all objects added to the stage via create share this?
-  const entity = new Entity(stage, constructor.name);
-  if (classInstance.loop) {
-    entity._loop = classInstance.loop.bind(classInstance);
-  }
-  if (classInstance.setup) {
-    entity._setup = classInstance.setup.bind(classInstance);
-  }
-  entity._ref = classInstance;
-  const options = Object.assign({}, boxDefaults, _options, parameters);
+    entity,
+    options,
+    stage
+  } = baseEntityCreation(params, boxDefaults);
   const {
     width,
     height,
@@ -1000,24 +1013,12 @@ const sphereDefaults = {
   glow: false,
   isSensor: false
 };
-function createSphere({
-  classInstance,
-  parameters,
-  stage
-}) {
+function createSphere(params) {
   const {
-    _options,
-    constructor
-  } = classInstance;
-  const entity = new Entity(stage, constructor.name);
-  if (classInstance.loop) {
-    entity._loop = classInstance.loop.bind(classInstance);
-  }
-  if (classInstance.setup) {
-    entity._setup = classInstance.setup.bind(classInstance);
-  }
-  entity._ref = classInstance;
-  const options = Object.assign({}, sphereDefaults, _options, parameters);
+    entity,
+    options,
+    stage
+  } = baseEntityCreation(params, sphereDefaults);
   const radius = options.radius;
   const position = options.position;
   const color = options.color;
@@ -1057,24 +1058,12 @@ const triggerDefaults = {
   onExit: () => {},
   hasEntered: false
 };
-function createAreaTrigger({
-  classInstance,
-  parameters,
-  stage
-}) {
+function createAreaTrigger(params) {
   const {
-    _options,
-    constructor
-  } = classInstance;
-  const entity = new Entity(stage, constructor.name);
-  if (classInstance.loop) {
-    entity._loop = classInstance.loop.bind(classInstance);
-  }
-  if (classInstance.setup) {
-    entity._setup = classInstance.setup.bind(classInstance);
-  }
-  entity._ref = classInstance;
-  const options = Object.assign({}, triggerDefaults, _options, parameters);
+    entity,
+    options,
+    stage
+  } = baseEntityCreation(params, triggerDefaults);
   const {
     width,
     height,

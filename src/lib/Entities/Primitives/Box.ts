@@ -3,6 +3,7 @@ import { PrimitiveOptions } from '.';
 import { Vector3, Vector2 } from '../../Util';
 import { CreationParameters } from '..';
 import { Color } from 'three';
+import { baseEntityCreation } from '../EntityCreation';
 
 export interface BoxOptions extends PrimitiveOptions {
 	width: number;
@@ -30,19 +31,8 @@ const boxDefaults: BoxOptions = {
 	isSensor: false
 }
 
-export function createBox({ classInstance, parameters, stage }: CreationParameters) {
-	const { _options, constructor } = classInstance;
-	// TODO: do all objects added to the stage via create share this?
-	const entity = new Entity(stage, constructor.name);
-	if (classInstance.loop) {
-		entity._loop = classInstance.loop.bind(classInstance);
-	}
-	if (classInstance.setup) {
-		entity._setup = classInstance.setup.bind(classInstance);
-	}
-	entity._ref = classInstance;
-
-	const options = Object.assign({}, boxDefaults, _options, parameters);
+export function createBox(params: CreationParameters) {
+	const { entity, options, stage } = baseEntityCreation(params, boxDefaults);
 
 	const { width, height, depth } = options;
 	const size = new Vector3(width, height, depth);
