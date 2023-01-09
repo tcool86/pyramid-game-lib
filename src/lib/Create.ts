@@ -1,10 +1,4 @@
 import Stage from './Stage';
-import { BaseOptions } from "./Entities/Entity";
-import { PrimitiveOptions } from "./Entities/Primitives";
-import { TriggerOptions } from "./Entities/Triggers";
-
-// TODO: types here seem unecessary
-type AnyOptions = BaseOptions & PrimitiveOptions & TriggerOptions;
 
 function classType(classInstance: any) {
 	if (!(typeof classInstance?.constructor === 'function')) {
@@ -33,7 +27,8 @@ export async function createInternal(classInstance: any, parameters: any, stage:
 
 export async function Create(stage: Stage) {
 	return {
-		create: async (entityClass: any, parameters: any = {}) => { // create exposed to consumer
+		// create exposed to consumer
+		create: async (entityClass: any, parameters: any = {}) => {
 			const classInstance = new entityClass();
 			return await createInternal(classInstance, parameters, stage);
 		}

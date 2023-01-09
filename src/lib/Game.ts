@@ -38,7 +38,9 @@ function Game({ app, globals }: { app: HTMLElement, globals: Globals }) {
 		});
 		pyramidInstance.ready.then(() => {
 			app.appendChild(pyramidInstance.domElement());
-			gameInstance.ready.bind(gameInstance)();
+			if (gameInstance.ready) {
+				gameInstance.ready.bind(gameInstance)();
+			}
 		})
 	}
 }
