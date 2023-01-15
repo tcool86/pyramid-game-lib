@@ -28,6 +28,7 @@ export default class Entity implements EntityBuilder {
     isSensor: boolean;
     stageRef: Stage;
     tag: string;
+    _frames: Map<string, any>;
     _loop?: Function;
     _setup?: Function;
     _ref: any;

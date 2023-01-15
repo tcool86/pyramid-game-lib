@@ -552,6 +552,33 @@ var Util = {
   Vector2
 };
 
+class Frame {
+  constructor(callback, internalTimer, delta) {
+    this.reset = internalTimer;
+    this.callback = callback;
+    this.internalTimer = delta;
+  }
+  update(delta) {
+    this.internalTimer += delta;
+    if (this.internalTimer >= this.reset) {
+      this.internalTimer = 0;
+      this.callback();
+    }
+  }
+}
+const frameMaker = (delta, self) => {
+  return (timer, callback) => {
+    const key = `${callback.toString()}-${timer}`;
+    const savedFrame = self._frames.get(key);
+    if (savedFrame) {
+      savedFrame.update(delta);
+      return;
+    }
+    const _frame = new Frame(callback, timer, delta);
+    self._frames.set(key, _frame);
+  };
+};
+
 class Entity {
   static instanceCounter = 0;
   constructor(stage, tag) {
@@ -562,6 +589,7 @@ class Entity {
     this.showDebug = false;
     this.isSensor = false;
     this.id = `e-${Entity.instanceCounter++}`;
+    this._frames = new Map();
   }
   rectangularMesh(size, position) {
     const {
@@ -741,7 +769,8 @@ class Entity {
       this._loop({
         entity: this,
         delta,
-        inputs
+        inputs,
+        frame: frameMaker(delta, this)
       });
     }
   }

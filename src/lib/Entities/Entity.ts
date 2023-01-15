@@ -3,6 +3,7 @@ import { Vector3 } from '../Util';
 import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
 import { BufferGeometry, Vector2 } from "three";
+import { frameMaker } from "./Frame";
 
 export interface EntityBuilder {
 	rectangularMesh(size: Vector3, position: Vector3): void;
@@ -40,6 +41,7 @@ export default class Entity implements EntityBuilder {
 	isSensor: boolean;
 	stageRef: Stage;
 	tag: string;
+	_frames: Map<string, any>;
 	_loop?: Function;
 	_setup?: Function;
 	_ref: any;
@@ -54,6 +56,7 @@ export default class Entity implements EntityBuilder {
 		this.showDebug = false;
 		this.isSensor = false;
 		this.id = `e-${Entity.instanceCounter++}`;
+		this._frames = new Map();
 	}
 
 	rectangularMesh(size: Vector3, position: Vector3) {
@@ -219,7 +222,8 @@ export default class Entity implements EntityBuilder {
 			this._loop({
 				entity: this,
 				delta,
-				inputs
+				inputs,
+				frame: frameMaker(delta, this)
 			});
 		}
 	}
