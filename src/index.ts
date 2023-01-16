@@ -3,7 +3,7 @@ import Game from './lib/Game';
 import Gamepad from './lib/Gamepad';
 import Globals from './lib/Globals';
 import Menu from './lib/Menu';
-import Stage from './lib/Stage';
+import { PyramidStage } from './lib/Stage';
 import Util from './lib/Util';
 import { Actor, Collision, Box, Sphere, Trigger } from './lib/Entities';
 import { Materials } from './lib/Entities/Materials';
@@ -14,7 +14,7 @@ const Pyramid = {
 	Gamepad,
 	Globals,
 	Menu,
-	Stage,
+	PyramidStage,
 	Entity: { Actor, Collision, Materials, Box, Sphere, Trigger },
 	Util,
 }

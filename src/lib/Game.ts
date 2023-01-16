@@ -1,6 +1,6 @@
 
 import RAPIER from '@dimforge/rapier3d-compat';
-import Stage from './Stage';
+import { PyramidStage } from './Stage';
 import Menu from './Menu';
 import { Create } from './Create';
 import Gamepad, { ControllerInput } from './Gamepad';
@@ -11,7 +11,7 @@ import Globals from './Globals';
 export interface LoopInterface {
 	ticks: number;
 	inputs: ControllerInput[];
-	stage: Stage;
+	stage: PyramidStage;
 	globals: Globals;
 }
 
@@ -52,7 +52,7 @@ function Game({ app }: { app: HTMLElement | string }) {
 }
 
 class PyramidGame {
-	stages: Stage[] = [];
+	stages: PyramidStage[] = [];
 	currentStage: number = 0;
 	menu?: Menu;
 	_globals: Globals;
@@ -73,7 +73,7 @@ class PyramidGame {
 		this.ready = new Promise(async (resolve, reject) => {
 			try {
 				const world = await this.loadPhysics();
-				this.stages.push(new Stage(world));
+				this.stages.push(new PyramidStage(world));
 				await this.gameSetup();
 				const self = this;
 				requestAnimationFrame(() => {
@@ -127,7 +127,8 @@ class PyramidGame {
 		const commands = Create(this.stage());
 		this._setup({
 			commands,
-			globals: this._globals
+			globals: this._globals,
+			camera: this.stage()._camera
 		});
 	}
 
@@ -136,7 +137,8 @@ class PyramidGame {
 	}
 
 	domElement() {
-		const element = this.stage().renderer.domElement ?? document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+		const canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+		const element = this.stage().element() ?? canvas;
 		return element;
 	}
 }

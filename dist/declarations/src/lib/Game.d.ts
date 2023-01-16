@@ -1,10 +1,10 @@
-import Stage from './Stage';
+import { PyramidStage } from './Stage';
 import { ControllerInput } from './Gamepad';
 import Globals from './Globals';
 export interface LoopInterface {
     ticks: number;
     inputs: ControllerInput[];
-    stage: Stage;
+    stage: PyramidStage;
     globals: Globals;
 }
 export interface SetupInterface {

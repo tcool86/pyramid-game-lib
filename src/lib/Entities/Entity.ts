@@ -1,4 +1,4 @@
-import Stage from "../Stage";
+import { PyramidStage } from "../Stage";
 import { Vector3 } from '../Util';
 import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
@@ -39,7 +39,7 @@ export default class Entity implements EntityBuilder {
 	showDebug: boolean;
 	collisionKey?: string;
 	isSensor: boolean;
-	stageRef: Stage;
+	stageRef: PyramidStage;
 	tag: string;
 	_frames: Map<string, any>;
 	_loop?: Function;
@@ -48,7 +48,7 @@ export default class Entity implements EntityBuilder {
 
 	static instanceCounter = 0;
 
-	constructor(stage: Stage, tag: string) {
+	constructor(stage: PyramidStage, tag: string) {
 		this.stageRef = stage;
 		this.tag = tag;
 		this.debug = null;

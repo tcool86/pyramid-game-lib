@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var RAPIER = require('@dimforge/rapier3d-compat');
 var THREE = require('three');
 var EffectComposer = require('three/examples/jsm/postprocessing/EffectComposer');
-var OrbitControls = require('three/examples/jsm/controls/OrbitControls');
 var Pass = require('three/examples/jsm/postprocessing/Pass');
 var stateshot = require('stateshot');
 var FBXLoader = require('three/examples/jsm/loaders/FBXLoader');
@@ -135,21 +134,71 @@ async function Create(stage) {
   };
 }
 
-class Stage {
-  constructor(world) {
-    const scene = new THREE__namespace.Scene();
-    let screenResolution = new THREE__namespace.Vector2(window.innerWidth, window.innerHeight);
-    let renderResolution = screenResolution.clone().divideScalar(2);
-    renderResolution.x |= 0;
-    renderResolution.y |= 0;
+// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+
+class PyramidCamera {
+  constructor(screenResolution) {
     let aspectRatio = screenResolution.x / screenResolution.y;
-    const camera = new THREE__namespace.PerspectiveCamera(45, aspectRatio, 0.1, 1000);
-    camera.position.z = 20;
-    camera.position.y = 6 * Math.tan(Math.PI / 3);
-    scene.background = new THREE__namespace.Color(0x5843c1);
-    const ambientLight = new THREE__namespace.AmbientLight(0xffffff, 0.8);
+    this.camera = new THREE.PerspectiveCamera(45, aspectRatio, 0.1, 1000);
+    this.camera.position.z = 20;
+    this.camera.position.y = 6 * Math.tan(Math.PI / 3);
+    this.follow = null;
+    // const controls = new OrbitControls(camera, renderer.domElement)
+    // controls.target.set(0, 0, 0);
+    // controls.update();
+  }
+
+  update() {
+    if (this.follow) {
+      this.moveFollowCamera();
+    }
+  }
+  moveFollowCamera() {
+    const entity = this.follow;
+    const {
+      x,
+      y,
+      z
+    } = entity?.body.translation() || {
+      x: 0,
+      y: 0,
+      z: 0
+    };
+    const entityPosition = new THREE.Vector3(x, y, z);
+    this.camera.lookAt(entityPosition);
+  }
+  followEntity(entity) {
+    this.follow = entity;
+  }
+}
+
+class PyramidStage {
+  constructor(world) {
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x5843c1);
+    this.setupRenderer();
+    this.setupLighting(scene);
+    this.setupCamera(scene);
+    this.scene = scene;
+    this.world = world;
+    this.children = new Map();
+    this.colliders = new Map();
+    this.intersectors = new Map();
+    this.players = new Map();
+  }
+  setupRenderer() {
+    let screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+    this.screenResolution = screenResolution;
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: false
+    });
+    this.renderer.setSize(screenResolution.x, screenResolution.y);
+    this.composer = new EffectComposer.EffectComposer(this.renderer);
+  }
+  setupLighting(scene) {
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
-    const directionalLight = new THREE__namespace.DirectionalLight(0xffffff, 1);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.name = 'Light';
     directionalLight.position.set(0, 100, 0);
     directionalLight.castShadow = true;
@@ -158,26 +207,15 @@ class Stage {
     directionalLight.shadow.mapSize.width = 1024;
     directionalLight.shadow.mapSize.height = 1024;
     scene.add(directionalLight);
-
-    // scene.add(new THREE.CameraHelper(spotLight.shadow.camera));
-
-    const renderer = new THREE__namespace.WebGLRenderer({
-      antialias: false
-    });
-    renderer.setSize(screenResolution.x, screenResolution.y);
-    const composer = new EffectComposer.EffectComposer(renderer);
-    composer.addPass(new RenderPass(renderResolution, scene, camera));
-    const controls = new OrbitControls.OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 0, 0);
-    controls.update();
-    this.renderer = renderer;
-    this.composer = composer;
-    this.scene = scene;
-    this.world = world;
-    this.children = new Map();
-    this.colliders = new Map();
-    this.intersectors = new Map();
-    this.players = new Map();
+  }
+  setupCamera(scene) {
+    // TODO: Should PyramidCamera wrap camera or extend it?
+    this._camera = new PyramidCamera(this.screenResolution);
+    let renderResolution = this.screenResolution.clone().divideScalar(2);
+    renderResolution.x |= 0;
+    renderResolution.y |= 0;
+    // TODO: the _camera.camera is a bit wierd. 🤷🏻‍♂️
+    this.composer.addPass(new RenderPass(renderResolution, scene, this._camera.camera));
   }
   addChild(id, child) {
     if (child._setup) {
@@ -214,6 +252,7 @@ class Stage {
       });
     }
     this.updateCollision();
+    this._camera.update();
   }
   updateCollision() {
     this.updateColliders();
@@ -308,6 +347,9 @@ class Stage {
   }
   render() {
     this.composer.render();
+  }
+  element() {
+    return this.renderer.domElement;
   }
 }
 
@@ -475,7 +517,7 @@ class PyramidGame {
     this.ready = new Promise(async (resolve, reject) => {
       try {
         const world = await this.loadPhysics();
-        this.stages.push(new Stage(world));
+        this.stages.push(new PyramidStage(world));
         await this.gameSetup();
         const self = this;
         requestAnimationFrame(() => {
@@ -528,14 +570,16 @@ class PyramidGame {
     const commands = Create(this.stage());
     this._setup({
       commands,
-      globals: this._globals
+      globals: this._globals,
+      camera: this.stage()._camera
     });
   }
   stage() {
     return this.stages[this.currentStage];
   }
   domElement() {
-    const element = this.stage().renderer.domElement ?? document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+    const canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+    const element = this.stage().element() ?? canvas;
     return element;
   }
 }
@@ -1166,7 +1210,7 @@ const Pyramid = {
   Gamepad,
   Globals,
   Menu,
-  Stage,
+  PyramidStage,
   Entity: {
     Actor,
     Collision,

@@ -1,48 +1,78 @@
-import RAPIER from '@dimforge/rapier3d-compat';
-import * as THREE from 'three';
+import {
+	Scene,
+	Color,
+	Vector2,
+	WebGLRenderer,
+	AmbientLight,
+	DirectionalLight,
+} from 'three';
+import { World, Collider } from '@dimforge/rapier3d-compat';
+import Entity from './Entities/Entity';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 // import RenderPass from './rendering/RenderPixelatedPass';
 // import RenderPass from './rendering/RenderWobblyPass';
 import RenderPass from './rendering/RenderPass';
-import Entity from './Entities/Entity';
 import { TriggerEntity } from './Entities/Triggers';
 import { PyramidActor } from './Entities/Actor';
 import { Create } from './Create';
+import { PyramidCamera } from './Camera';
 
 interface EntityColliderData {
 	id: string;
 }
 
-export default class Stage {
-	world: RAPIER.World;
-	scene: THREE.Scene;
-	renderer: THREE.WebGLRenderer;
-	composer: EffectComposer;
+export function Stage({ world }: { world: World }) {
+	return (target: any) => {
+		const gameInstance = new target();
+		const pyramidInstance = new PyramidStage(world);
+	}
+}
+
+export class PyramidStage {
+	world: World;
+	scene: Scene;
+
+	screenResolution!: Vector2;
+	renderer!: WebGLRenderer;
+	composer!: EffectComposer;
+
+	_camera!: PyramidCamera;
+
 	colliders: Map<string, Entity>;
 	intersectors: Map<string, Entity>;
 	children: Map<string, Entity>;
 	players: Map<string, PyramidActor>;
 
-	constructor(world: RAPIER.World) {
-		const scene = new THREE.Scene();
-		let screenResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
-		let renderResolution = screenResolution.clone().divideScalar(2);
-		renderResolution.x |= 0;
-		renderResolution.y |= 0;
+	constructor(world: World) {
+		const scene = new Scene();
+		scene.background = new Color(0x5843c1);
 
-		let aspectRatio = screenResolution.x / screenResolution.y;
+		this.setupRenderer();
+		this.setupLighting(scene);
+		this.setupCamera(scene);
 
-		const camera = new THREE.PerspectiveCamera(45, aspectRatio, 0.1, 1000);
-		camera.position.z = 20;
-		camera.position.y = 6 * Math.tan(Math.PI / 3);
+		this.scene = scene;
+		this.world = world;
+		this.children = new Map();
+		this.colliders = new Map();
+		this.intersectors = new Map();
+		this.players = new Map();
+	}
 
-		scene.background = new THREE.Color(0x5843c1);
+	setupRenderer() {
+		let screenResolution = new Vector2(window.innerWidth, window.innerHeight);
+		this.screenResolution = screenResolution;
 
-		const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+		this.renderer = new WebGLRenderer({ antialias: false });
+		this.renderer.setSize(screenResolution.x, screenResolution.y);
+		this.composer = new EffectComposer(this.renderer);
+	}
+
+	setupLighting(scene: Scene) {
+		const ambientLight = new AmbientLight(0xffffff, 0.8);
 		scene.add(ambientLight);
 
-		const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+		const directionalLight = new DirectionalLight(0xffffff, 1);
 		directionalLight.name = 'Light';
 		directionalLight.position.set(0, 100, 0);
 		directionalLight.castShadow = true;
@@ -51,27 +81,16 @@ export default class Stage {
 		directionalLight.shadow.mapSize.width = 1024;
 		directionalLight.shadow.mapSize.height = 1024;
 		scene.add(directionalLight);
+	}
 
-		// scene.add(new THREE.CameraHelper(spotLight.shadow.camera));
-
-		const renderer = new THREE.WebGLRenderer({ antialias: false });
-		renderer.setSize(screenResolution.x, screenResolution.y);
-
-		const composer = new EffectComposer(renderer);
-		composer.addPass(new RenderPass(renderResolution, scene, camera));
-
-		const controls = new OrbitControls(camera, renderer.domElement)
-		controls.target.set(0, 0, 0);
-		controls.update();
-
-		this.renderer = renderer;
-		this.composer = composer;
-		this.scene = scene;
-		this.world = world;
-		this.children = new Map();
-		this.colliders = new Map();
-		this.intersectors = new Map();
-		this.players = new Map();
+	setupCamera(scene: Scene) {
+		// TODO: Should PyramidCamera wrap camera or extend it?
+		this._camera = new PyramidCamera(this.screenResolution);
+		let renderResolution = this.screenResolution.clone().divideScalar(2);
+		renderResolution.x |= 0;
+		renderResolution.y |= 0;
+		// TODO: the _camera.camera is a bit wierd. 🤷🏻‍♂️
+		this.composer.addPass(new RenderPass(renderResolution, scene, this._camera.camera));
 	}
 
 	addChild(id: string, child: any) {
@@ -102,6 +121,7 @@ export default class Stage {
 			entity.update({ delta, inputs });
 		}
 		this.updateCollision();
+		this._camera.update();
 	}
 
 	updateCollision() {
@@ -109,7 +129,7 @@ export default class Stage {
 		this.updateIntersectors();
 	}
 
-	getEntityFromCollider(collider: RAPIER.Collider): Entity | null {
+	getEntityFromCollider(collider: Collider): Entity | null {
 		const parent = collider.parent();
 		const userData: EntityColliderData = parent?.userData as EntityColliderData;
 		if (!userData) {
@@ -187,5 +207,9 @@ export default class Stage {
 
 	render() {
 		this.composer.render();
+	}
+
+	element() {
+		return this.renderer.domElement;
 	}
 }

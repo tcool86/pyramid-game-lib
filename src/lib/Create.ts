@@ -1,4 +1,4 @@
-import Stage from './Stage';
+import { PyramidStage } from './Stage';
 
 function classType(classInstance: any) {
 	if (!(typeof classInstance?.constructor === 'function')) {
@@ -13,7 +13,7 @@ function determineEntity(classInstance: any) {
 	}
 }
 
-export async function createInternal(classInstance: any, parameters: any, stage: Stage) {
+export async function createInternal(classInstance: any, parameters: any, stage: PyramidStage) {
 	const fn = determineEntity(classInstance);
 	if (classType(classInstance) !== null) {
 		return fn({
@@ -25,7 +25,7 @@ export async function createInternal(classInstance: any, parameters: any, stage:
 	return fn(classInstance, stage);
 }
 
-export async function Create(stage: Stage) {
+export async function Create(stage: PyramidStage) {
 	return {
 		// create exposed to consumer
 		create: async (entityClass: any, parameters: any = {}) => {

@@ -4,11 +4,11 @@ export { default as Collision } from "./Collision";
 export { Box, Sphere } from "./Primitives";
 export { Trigger } from "./Triggers";
 import { PrimitiveOptions } from "./Primitives";
-import Stage from '../Stage';
+import { PyramidStage } from '../Stage';
 
 export type AnyOption = any | PrimitiveOptions;
 
-export type CreationParameters = { classInstance: any, parameters: AnyOption, stage: Stage };
+export type CreationParameters = { classInstance: any, parameters: AnyOption, stage: PyramidStage };
 
 export interface BaseOptions {
 	showDebug: boolean;
