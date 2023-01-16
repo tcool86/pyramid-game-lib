@@ -1,6 +1,6 @@
 {
   "name": "pyramid-game-lib",
-  "version": "2.1.14",
+  "version": "2.1.15",
   "description": "TypeScript library for building simple 3D games",
   "main": "dist/pyramid-game-lib.cjs.js",
   "module": "dist/pyramid-game-lib.esm.js",

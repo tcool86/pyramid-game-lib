@@ -408,19 +408,50 @@ class Gamepad {
   }
 }
 
+class Globals {
+  constructor() {}
+  static getInstance() {
+    if (!Globals.instance) {
+      Globals.instance = new Globals();
+    }
+    return Globals.instance;
+  }
+  setState(state) {
+    if (!this.history) {
+      this.history = new stateshot.History();
+    }
+    this.history.pushSync(state);
+  }
+  update(state) {
+    const current = this.current();
+    this.history.pushSync({
+      ...current,
+      ...state
+    });
+  }
+  current() {
+    return this.history.get();
+  }
+}
+
 function Game({
-  app,
-  globals
+  app
 }) {
   return target => {
     const gameInstance = new target();
     const pyramidInstance = new PyramidGame({
       loop: gameInstance.loop.bind(gameInstance),
       setup: gameInstance.setup.bind(gameInstance),
-      globals: globals
+      globals: Globals.getInstance()
     });
     pyramidInstance.ready.then(() => {
-      app.appendChild(pyramidInstance.domElement());
+      let appElement;
+      if (typeof app === 'string') {
+        appElement = document.querySelector('#app');
+      } else {
+        appElement = app;
+      }
+      appElement.appendChild(pyramidInstance.domElement());
       if (gameInstance.ready) {
         gameInstance.ready.bind(gameInstance)();
       }
@@ -506,23 +537,6 @@ class PyramidGame {
   domElement() {
     const element = this.stage().renderer.domElement ?? document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
     return element;
-  }
-}
-
-class Globals {
-  constructor(state) {
-    this.history = new stateshot.History();
-    this.history.pushSync(state);
-  }
-  update(state) {
-    const current = this.current();
-    this.history.pushSync({
-      ...current,
-      ...state
-    });
-  }
-  current() {
-    return this.history.get();
   }
 }
 

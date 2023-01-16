@@ -13,8 +13,7 @@ export interface SetupInterface {
     };
     globals: Globals;
 }
-declare function Game({ app, globals }: {
-    app: HTMLElement;
-    globals: Globals;
+declare function Game({ app }: {
+    app: HTMLElement | string;
 }): (target: any) => void;
 export default Game;

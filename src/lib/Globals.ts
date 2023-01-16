@@ -5,10 +5,23 @@ export interface GameState {
 }
 
 export default class Globals {
-	history: History;
+	private static instance: Globals;
 
-	constructor(state: GameState) {
-		this.history = new History();
+	history!: History;
+
+	private constructor() { }
+
+	public static getInstance(): Globals {
+		if (!Globals.instance) {
+			Globals.instance = new Globals();
+		}
+		return Globals.instance;
+	}
+
+	setState(state: GameState) {
+		if (!this.history) {
+			this.history = new History();
+		}
 		this.history.pushSync(state);
 	}
 

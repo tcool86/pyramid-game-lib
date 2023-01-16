@@ -28,16 +28,22 @@ interface GameOptions {
 	globals: Globals;
 }
 
-function Game({ app, globals }: { app: HTMLElement, globals: Globals }) {
+function Game({ app }: { app: HTMLElement | string }) {
 	return (target: any) => {
 		const gameInstance = new target();
 		const pyramidInstance = new PyramidGame({
 			loop: gameInstance.loop.bind(gameInstance),
 			setup: gameInstance.setup.bind(gameInstance),
-			globals: globals
+			globals: Globals.getInstance()
 		});
 		pyramidInstance.ready.then(() => {
-			app.appendChild(pyramidInstance.domElement());
+			let appElement;
+			if (typeof app === 'string') {
+				appElement = document.querySelector<HTMLDivElement>('#app')!;
+			} else {
+				appElement = app;
+			}
+			appElement.appendChild(pyramidInstance.domElement());
 			if (gameInstance.ready) {
 				gameInstance.ready.bind(gameInstance)();
 			}
