@@ -4,9 +4,9 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var RAPIER = require('@dimforge/rapier3d-compat');
 var THREE = require('three');
+var stateshot = require('stateshot');
 var EffectComposer = require('three/examples/jsm/postprocessing/EffectComposer');
 var Pass = require('three/examples/jsm/postprocessing/Pass');
-var stateshot = require('stateshot');
 var FBXLoader = require('three/examples/jsm/loaders/FBXLoader');
 
 function _interopDefault (e) { return e && e.__esModule ? e : { 'default': e }; }
@@ -41,6 +41,282 @@ class Debug extends HTMLElement {
     // window.customElements.define('pyramid-debug', PyramidDebugElement);
     // const debugElement = document.createElement('pyramid-debug');
     // app.appendChild(debugElement);
+  }
+}
+
+function classType(classInstance) {
+  if (!(typeof classInstance?.constructor === 'function')) {
+    return null;
+  }
+  return classInstance.constructor.name;
+}
+function determineEntity(classInstance) {
+  if (classType(classInstance) !== null) {
+    return classInstance._create;
+  }
+}
+async function createInternal(classInstance, parameters, stage) {
+  const fn = determineEntity(classInstance);
+  if (classType(classInstance) !== null) {
+    return fn({
+      classInstance: classInstance,
+      parameters,
+      stage
+    });
+  }
+  return fn(classInstance, stage);
+}
+async function Create(stage) {
+  return {
+    // create exposed to consumer
+    create: async (entityClass, parameters = {}) => {
+      const classInstance = new entityClass();
+      return await createInternal(classInstance, parameters, stage);
+    }
+  };
+}
+
+class Gamepad {
+  connections = new Map();
+  keyboardInput = new Map();
+  constructor() {
+    this.hasSupport = true;
+    this.lastConnection = -1;
+    const interval = setInterval(() => {
+      if (!this.hasSupport) {
+        clearInterval(interval);
+      }
+      if (this.connections.size > this.lastConnection) {
+        this.scanGamepads();
+      }
+    }, 200);
+    window.addEventListener("gamepadconnected", event => {
+      const {
+        gamepad
+      } = event;
+      this.connections.set(gamepad.index, gamepad.connected);
+    });
+    window.addEventListener("gamepaddisconnected", event => {
+      const {
+        gamepad
+      } = event;
+      this.connections.delete(gamepad.index);
+    });
+    window.addEventListener("keydown", event => {
+      const {
+        key
+      } = event;
+      this.keyboardInput.set(key, true);
+    });
+    window.addEventListener("keyup", event => {
+      const {
+        key
+      } = event;
+      this.keyboardInput.set(key, false);
+    });
+  }
+  scanGamepads() {
+    const browserGamepadSupport = Boolean(navigator.getGamepads) ?? false;
+    let gamepads;
+    if (browserGamepadSupport) {
+      gamepads = navigator.getGamepads();
+    } else {
+      console.warn("This browser doesn't support gamepads");
+      this.hasSupport = false;
+      return;
+    }
+    this.lastConnection = gamepads.length;
+  }
+  getInputAtIndex(index) {
+    const gamepad = navigator.getGamepads()[index];
+    const connected = this.connections.get(index);
+    const up = this.keyboardInput.get('ArrowUp');
+    const down = this.keyboardInput.get('ArrowDown');
+    const left = this.keyboardInput.get('ArrowLeft');
+    const right = this.keyboardInput.get('ArrowRight');
+    const z = this.keyboardInput.get('z');
+    const x = this.keyboardInput.get('x');
+    let horizontal = right ? 1 : left ? -1 : 0;
+    let vertical = up ? -1 : down ? 1 : 0;
+    let buttonA = z ? 1 : 0;
+    let buttonB = x ? 1 : 0;
+    if (!connected || !gamepad) {
+      return {
+        horizontal: horizontal,
+        vertical: vertical,
+        buttonA,
+        buttonB,
+        buttonX: 0,
+        buttonY: 0,
+        select: 0,
+        start: 0
+      };
+    }
+    const [x1, y1] = gamepad.axes;
+    horizontal = Math.abs(x1) > 0.1 ? x1 : horizontal;
+    vertical = Math.abs(y1) > 0.1 ? y1 : vertical;
+    buttonA = gamepad.buttons[0].value || buttonA;
+    buttonB = gamepad.buttons[1].value || buttonB;
+    return {
+      horizontal,
+      vertical,
+      buttonA,
+      buttonB,
+      buttonX: 0,
+      buttonY: 0,
+      select: 0,
+      start: 0
+    };
+  }
+  getInputs() {
+    return [this.getInputAtIndex(0)];
+  }
+}
+
+class Globals {
+  constructor() {}
+  static getInstance() {
+    if (!Globals.instance) {
+      Globals.instance = new Globals();
+    }
+    return Globals.instance;
+  }
+  setState(state) {
+    if (!this.history) {
+      this.history = new stateshot.History();
+    }
+    this.history.pushSync(state);
+  }
+  update(state) {
+    const current = this.current();
+    this.history.pushSync({
+      ...current,
+      ...state
+    });
+  }
+  current() {
+    return this.history.get();
+  }
+}
+
+function Game({
+  app,
+  stages = []
+}) {
+  return target => {
+    const gameInstance = new target();
+    const pyramidInstance = new PyramidGame({
+      loop: gameInstance.loop.bind(gameInstance),
+      setup: gameInstance.setup.bind(gameInstance),
+      globals: Globals.getInstance(),
+      stages: stages
+    });
+    pyramidInstance.ready.then(() => {
+      let appElement;
+      if (typeof app === 'string') {
+        appElement = document.querySelector('#app');
+      } else {
+        appElement = app;
+      }
+      appElement.appendChild(pyramidInstance.domElement());
+      if (gameInstance.ready) {
+        gameInstance.ready.bind(gameInstance)();
+      }
+    });
+  };
+}
+class PyramidGame {
+  stages = [];
+  currentStage = 0;
+  constructor({
+    loop,
+    setup,
+    globals,
+    stages
+  }) {
+    this.gamepad = new Gamepad();
+    this.clock = new THREE.Clock();
+    this.pause = false;
+    this._loop = loop;
+    this._setup = setup;
+    this._globals = globals;
+    this._stages = stages;
+    this.ready = new Promise(async (resolve, reject) => {
+      try {
+        const world = await this.loadPhysics();
+        for (const stageCreator of this._stages) {
+          const stage = stageCreator(world);
+          this.stages.push(stage);
+        }
+        await this.gameSetup();
+        const self = this;
+        requestAnimationFrame(() => {
+          self.gameLoop(self);
+        });
+        resolve(true);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+  async loadPhysics() {
+    await RAPIER__default["default"].init();
+    const world = new RAPIER__default["default"].World({
+      x: 0.0,
+      y: -9.81,
+      z: 0.0
+    });
+    return world;
+  }
+
+  /**
+   * Main game loop
+   * process user input
+   * update physics
+   * render scene
+   */
+  async gameLoop(self) {
+    const inputs = this.gamepad.getInputs();
+    const ticks = this.clock.getDelta();
+    if (!this.pause) {
+      this.stage().update({
+        delta: ticks,
+        inputs
+      });
+    }
+    this._loop({
+      ticks,
+      inputs,
+      stage: this.stage(),
+      globals: this._globals,
+      game: this
+    });
+    this.stage().render();
+    requestAnimationFrame(() => {
+      self.gameLoop(self);
+    });
+  }
+  async gameSetup() {
+    const commands = Create(this.stage());
+    this._setup({
+      commands,
+      globals: this._globals,
+      camera: this.stage()._camera
+    });
+  }
+  stage() {
+    return this.stages[this.currentStage];
+  }
+  domElement() {
+    const canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+    const element = this.stage().element() ?? canvas;
+    return element;
+  }
+}
+
+class Menu {
+  constructor() {
+    console.log('new menu');
   }
 }
 
@@ -102,38 +378,6 @@ class RenderPass extends Pass.Pass {
   }
 }
 
-function classType(classInstance) {
-  if (!(typeof classInstance?.constructor === 'function')) {
-    return null;
-  }
-  return classInstance.constructor.name;
-}
-function determineEntity(classInstance) {
-  if (classType(classInstance) !== null) {
-    return classInstance._create;
-  }
-}
-async function createInternal(classInstance, parameters, stage) {
-  const fn = determineEntity(classInstance);
-  if (classType(classInstance) !== null) {
-    return fn({
-      classInstance: classInstance,
-      parameters,
-      stage
-    });
-  }
-  return fn(classInstance, stage);
-}
-async function Create(stage) {
-  return {
-    // create exposed to consumer
-    create: async (entityClass, parameters = {}) => {
-      const classInstance = new entityClass();
-      return await createInternal(classInstance, parameters, stage);
-    }
-  };
-}
-
 // import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 class PyramidCamera {
@@ -172,10 +416,32 @@ class PyramidCamera {
   }
 }
 
+function Stage(options) {
+  return target => {
+    const instance = new target();
+    return function (world) {
+      const pyramidInstance = new PyramidStage({
+        loop: instance.loop.bind(instance),
+        setup: instance.setup.bind(instance),
+        world,
+        options
+      });
+      return pyramidInstance;
+    };
+  };
+}
 class PyramidStage {
-  constructor(world) {
+  constructor({
+    options,
+    world,
+    loop,
+    setup
+  }) {
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x5843c1);
+    scene.background = options?.backgroundColor ?? new THREE.Color(0x5843c1);
+    this._loop = loop || (() => {});
+    this._setup = setup || (() => {});
+    this.name = options?.name ?? 'default-stage';
     this.setupRenderer();
     this.setupLighting(scene);
     this.setupCamera(scene);
@@ -350,243 +616,6 @@ class PyramidStage {
   }
   element() {
     return this.renderer.domElement;
-  }
-}
-
-class Gamepad {
-  connections = new Map();
-  keyboardInput = new Map();
-  constructor() {
-    this.hasSupport = true;
-    this.lastConnection = -1;
-    const interval = setInterval(() => {
-      if (!this.hasSupport) {
-        clearInterval(interval);
-      }
-      if (this.connections.size > this.lastConnection) {
-        this.scanGamepads();
-      }
-    }, 200);
-    window.addEventListener("gamepadconnected", event => {
-      const {
-        gamepad
-      } = event;
-      this.connections.set(gamepad.index, gamepad.connected);
-    });
-    window.addEventListener("gamepaddisconnected", event => {
-      const {
-        gamepad
-      } = event;
-      this.connections.delete(gamepad.index);
-    });
-    window.addEventListener("keydown", event => {
-      const {
-        key
-      } = event;
-      this.keyboardInput.set(key, true);
-    });
-    window.addEventListener("keyup", event => {
-      const {
-        key
-      } = event;
-      this.keyboardInput.set(key, false);
-    });
-  }
-  scanGamepads() {
-    const browserGamepadSupport = Boolean(navigator.getGamepads) ?? false;
-    let gamepads;
-    if (browserGamepadSupport) {
-      gamepads = navigator.getGamepads();
-    } else {
-      console.warn("This browser doesn't support gamepads");
-      this.hasSupport = false;
-      return;
-    }
-    this.lastConnection = gamepads.length;
-  }
-  getInputAtIndex(index) {
-    const gamepad = navigator.getGamepads()[index];
-    const connected = this.connections.get(index);
-    const up = this.keyboardInput.get('ArrowUp');
-    const down = this.keyboardInput.get('ArrowDown');
-    const left = this.keyboardInput.get('ArrowLeft');
-    const right = this.keyboardInput.get('ArrowRight');
-    const z = this.keyboardInput.get('z');
-    const x = this.keyboardInput.get('x');
-    let horizontal = right ? 1 : left ? -1 : 0;
-    let vertical = up ? -1 : down ? 1 : 0;
-    let buttonA = z ? 1 : 0;
-    let buttonB = x ? 1 : 0;
-    if (!connected || !gamepad) {
-      return {
-        horizontal: horizontal,
-        vertical: vertical,
-        buttonA,
-        buttonB,
-        buttonX: 0,
-        buttonY: 0,
-        select: 0,
-        start: 0
-      };
-    }
-    const [x1, y1] = gamepad.axes;
-    horizontal = Math.abs(x1) > 0.1 ? x1 : horizontal;
-    vertical = Math.abs(y1) > 0.1 ? y1 : vertical;
-    buttonA = gamepad.buttons[0].value || buttonA;
-    buttonB = gamepad.buttons[1].value || buttonB;
-    return {
-      horizontal,
-      vertical,
-      buttonA,
-      buttonB,
-      buttonX: 0,
-      buttonY: 0,
-      select: 0,
-      start: 0
-    };
-  }
-  getInputs() {
-    return [this.getInputAtIndex(0)];
-  }
-}
-
-class Globals {
-  constructor() {}
-  static getInstance() {
-    if (!Globals.instance) {
-      Globals.instance = new Globals();
-    }
-    return Globals.instance;
-  }
-  setState(state) {
-    if (!this.history) {
-      this.history = new stateshot.History();
-    }
-    this.history.pushSync(state);
-  }
-  update(state) {
-    const current = this.current();
-    this.history.pushSync({
-      ...current,
-      ...state
-    });
-  }
-  current() {
-    return this.history.get();
-  }
-}
-
-function Game({
-  app
-}) {
-  return target => {
-    const gameInstance = new target();
-    const pyramidInstance = new PyramidGame({
-      loop: gameInstance.loop.bind(gameInstance),
-      setup: gameInstance.setup.bind(gameInstance),
-      globals: Globals.getInstance()
-    });
-    pyramidInstance.ready.then(() => {
-      let appElement;
-      if (typeof app === 'string') {
-        appElement = document.querySelector('#app');
-      } else {
-        appElement = app;
-      }
-      appElement.appendChild(pyramidInstance.domElement());
-      if (gameInstance.ready) {
-        gameInstance.ready.bind(gameInstance)();
-      }
-    });
-  };
-}
-class PyramidGame {
-  stages = [];
-  currentStage = 0;
-  constructor({
-    loop,
-    setup,
-    globals
-  }) {
-    this.gamepad = new Gamepad();
-    this.clock = new THREE.Clock();
-    this.pause = false;
-    this._loop = loop;
-    this._setup = setup;
-    this._globals = globals;
-    this.ready = new Promise(async (resolve, reject) => {
-      try {
-        const world = await this.loadPhysics();
-        this.stages.push(new PyramidStage(world));
-        await this.gameSetup();
-        const self = this;
-        requestAnimationFrame(() => {
-          self.gameLoop(self);
-        });
-        resolve(true);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  }
-  async loadPhysics() {
-    await RAPIER__default["default"].init();
-    const world = new RAPIER__default["default"].World({
-      x: 0.0,
-      y: -9.81,
-      z: 0.0
-    });
-    return world;
-  }
-
-  /**
-   * Main game loop
-   * process user input
-   * update physics
-   * render scene
-   */
-  async gameLoop(self) {
-    const inputs = this.gamepad.getInputs();
-    const ticks = this.clock.getDelta();
-    if (!this.pause) {
-      this.stage().update({
-        delta: ticks,
-        inputs
-      });
-    }
-    this._loop({
-      ticks,
-      inputs,
-      stage: this.stage(),
-      globals: this._globals,
-      game: this
-    });
-    this.stage().render();
-    requestAnimationFrame(() => {
-      self.gameLoop(self);
-    });
-  }
-  async gameSetup() {
-    const commands = Create(this.stage());
-    this._setup({
-      commands,
-      globals: this._globals,
-      camera: this.stage()._camera
-    });
-  }
-  stage() {
-    return this.stages[this.currentStage];
-  }
-  domElement() {
-    const canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
-    const element = this.stage().element() ?? canvas;
-    return element;
-  }
-}
-
-class Menu {
-  constructor() {
-    console.log('new menu');
   }
 }
 
@@ -1210,7 +1239,7 @@ const Pyramid = {
   Gamepad,
   Globals,
   Menu,
-  PyramidStage,
+  Stage,
   Entity: {
     Actor,
     Collision,

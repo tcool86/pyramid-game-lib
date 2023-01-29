@@ -1,16 +1,30 @@
-import { Scene, Vector2, WebGLRenderer } from 'three';
+import { Scene, Color, Vector2, WebGLRenderer } from 'three';
 import { World, Collider } from '@dimforge/rapier3d-compat';
 import Entity from './Entities/Entity';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { TriggerEntity } from './Entities/Triggers';
 import { PyramidActor } from './Entities/Actor';
 import { PyramidCamera } from './Camera';
-export declare function Stage({ world }: {
+export declare function Stage(options: {
+    name: string;
+    backgroundColor: Color;
+}): (target: any) => (world: World) => PyramidStage;
+export interface StageOptions {
+    name: string;
+    backgroundColor: Color;
+}
+export interface StageInterface {
+    options: StageOptions;
     world: World;
-}): (target: any) => void;
+    loop?: Function;
+    setup?: Function;
+}
 export declare class PyramidStage {
+    name: string;
     world: World;
     scene: Scene;
+    _loop: Function;
+    _setup: Function;
     screenResolution: Vector2;
     renderer: WebGLRenderer;
     composer: EffectComposer;
@@ -19,7 +33,7 @@ export declare class PyramidStage {
     intersectors: Map<string, Entity>;
     children: Map<string, Entity>;
     players: Map<string, PyramidActor>;
-    constructor(world: World);
+    constructor({ options, world, loop, setup }: StageInterface);
     setupRenderer(): void;
     setupLighting(scene: Scene): void;
     setupCamera(scene: Scene): void;

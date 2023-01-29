@@ -26,15 +26,17 @@ interface GameOptions {
 	loop: ({ }: LoopInterface) => void;
 	setup: ({ }: SetupInterface) => void;
 	globals: Globals;
+	stages: Function[];
 }
 
-function Game({ app }: { app: HTMLElement | string }) {
+function Game({ app, stages = [] }: { app: HTMLElement | string, stages?: Function[] }) {
 	return (target: any) => {
 		const gameInstance = new target();
 		const pyramidInstance = new PyramidGame({
 			loop: gameInstance.loop.bind(gameInstance),
 			setup: gameInstance.setup.bind(gameInstance),
-			globals: Globals.getInstance()
+			globals: Globals.getInstance(),
+			stages: stages,
 		});
 		pyramidInstance.ready.then(() => {
 			let appElement;
@@ -58,22 +60,28 @@ class PyramidGame {
 	_globals: Globals;
 	_loop: Function;
 	_setup: Function;
+	_stages: Function[];
 	gamepad: Gamepad;
 	pause: boolean;
 	clock: Clock;
 	ready: Promise<boolean>;
 
-	constructor({ loop, setup, globals }: GameOptions) {
+	constructor({ loop, setup, globals, stages }: GameOptions) {
 		this.gamepad = new Gamepad();
 		this.clock = new Clock();
 		this.pause = false;
 		this._loop = loop;
 		this._setup = setup;
 		this._globals = globals;
+		this._stages = stages;
 		this.ready = new Promise(async (resolve, reject) => {
 			try {
 				const world = await this.loadPhysics();
-				this.stages.push(new PyramidStage(world));
+
+				for (const stageCreator of this._stages) {
+					const stage = stageCreator(world) as PyramidStage;
+					this.stages.push(stage);
+				}
 				await this.gameSetup();
 				const self = this;
 				requestAnimationFrame(() => {

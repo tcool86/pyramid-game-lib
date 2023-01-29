@@ -21,16 +21,41 @@ interface EntityColliderData {
 	id: string;
 }
 
-export function Stage({ world }: { world: World }) {
+export function Stage(options: { name: string, backgroundColor: Color }) {
 	return (target: any) => {
-		const gameInstance = new target();
-		const pyramidInstance = new PyramidStage(world);
+		const instance = new target();
+		return function (world: World) {
+			const pyramidInstance = new PyramidStage({
+				loop: instance.loop.bind(instance),
+				setup: instance.setup.bind(instance),
+				world,
+				options
+			});
+			return pyramidInstance;
+		}
 	}
 }
 
+export interface StageOptions {
+	name: string;
+	backgroundColor: Color;
+}
+
+export interface StageInterface {
+	options: StageOptions,
+	world: World,
+	loop?: Function,
+	setup?: Function
+}
+
 export class PyramidStage {
+	name: string;
+
 	world: World;
 	scene: Scene;
+
+	_loop: Function;
+	_setup: Function;
 
 	screenResolution!: Vector2;
 	renderer!: WebGLRenderer;
@@ -43,9 +68,13 @@ export class PyramidStage {
 	children: Map<string, Entity>;
 	players: Map<string, PyramidActor>;
 
-	constructor(world: World) {
+	constructor({ options, world, loop, setup }: StageInterface) {
 		const scene = new Scene();
-		scene.background = new Color(0x5843c1);
+		scene.background = options?.backgroundColor ?? new Color(0x5843c1);
+
+		this._loop = loop || (() => { });
+		this._setup = setup || (() => { });
+		this.name = options?.name ?? 'default-stage';
 
 		this.setupRenderer();
 		this.setupLighting(scene);
