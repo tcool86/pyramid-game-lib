@@ -3,7 +3,7 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { Vector3, Rotation, RigidBodyType } from '@dimforge/rapier3d-compat';
 import { BaseOptions } from '.';
 import Entity from './Entity';
-import Stage from '../Stage';
+import { PyramidStage } from '../Stage';
 import { AnimationClip } from 'three';
 
 export class ActorLoader {
@@ -101,7 +101,7 @@ export interface ActorOptions extends BaseOptions {
 }
 
 interface ActorInitialization {
-	stage: Stage;
+	stage: PyramidStage;
 	payload: any;
 	tag: string;
 }

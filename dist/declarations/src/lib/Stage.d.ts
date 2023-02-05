@@ -8,7 +8,7 @@ import { PyramidCamera } from './Camera';
 export declare function Stage(options: {
     name: string;
     backgroundColor: Color;
-}): (target: any) => (world: World) => PyramidStage;
+}): (target: any) => void;
 export interface StageOptions {
     name: string;
     backgroundColor: Color;

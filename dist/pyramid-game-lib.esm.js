@@ -219,7 +219,7 @@ class PyramidGame {
       try {
         const world = await this.loadPhysics();
         for (const stageCreator of this._stages) {
-          const stage = stageCreator(world);
+          const stage = stageCreator.prototype.init(world);
           this.stages.push(stage);
         }
         await this.gameSetup();
@@ -271,7 +271,12 @@ class PyramidGame {
     });
   }
   async gameSetup() {
-    const commands = Create(this.stage());
+    const commands = await Create(this.stage());
+    this.stage()._setup({
+      commands,
+      globals: this._globals,
+      camera: this.stage()._camera
+    });
     this._setup({
       commands,
       globals: this._globals,
@@ -393,7 +398,7 @@ class PyramidCamera {
 function Stage(options) {
   return target => {
     const instance = new target();
-    return function (world) {
+    instance.__proto__.init = function (world) {
       const pyramidInstance = new PyramidStage({
         loop: instance.loop.bind(instance),
         setup: instance.setup.bind(instance),

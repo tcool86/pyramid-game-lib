@@ -24,7 +24,7 @@ interface EntityColliderData {
 export function Stage(options: { name: string, backgroundColor: Color }) {
 	return (target: any) => {
 		const instance = new target();
-		return function (world: World) {
+		instance.__proto__.init = function (world: World) {
 			const pyramidInstance = new PyramidStage({
 				loop: instance.loop.bind(instance),
 				setup: instance.setup.bind(instance),
