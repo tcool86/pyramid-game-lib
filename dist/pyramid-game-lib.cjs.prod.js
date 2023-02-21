@@ -1238,6 +1238,8 @@ const Materials = {
   metal
 };
 
+// TODO: export any interface that will be used by dev
+
 const Pyramid = {
   Debug,
   Game,

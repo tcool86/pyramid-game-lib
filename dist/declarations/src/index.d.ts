@@ -1,10 +1,11 @@
 import Debug from './lib/Debug';
-import Game from './lib/Game';
+import Game, { PyramidGameEntity } from './lib/Game';
 import Gamepad from './lib/Gamepad';
 import Globals from './lib/Globals';
 import Menu from './lib/Menu';
 import { Stage } from './lib/Stage';
 import { Actor, Collision, Box, Sphere, Trigger } from './lib/Entities';
+export type { PyramidGameEntity as GameEntity };
 declare const Pyramid: {
     Debug: typeof Debug;
     Game: typeof Game;

@@ -1,4 +1,3 @@
-import Stage from "../Stage";
 import Entity from "./Entity";
 import { CreationParameters } from ".";
 

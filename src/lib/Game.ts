@@ -7,19 +7,31 @@ import Gamepad, { ControllerInput } from './Gamepad';
 
 import { Clock } from 'three';
 import Globals from './Globals';
+import { Entity } from './Entities';
+import { Frame } from './Entities/Frame';
 
-export interface LoopInterface {
+export interface BaseGameEntityInterface {
 	ticks: number;
-	inputs: ControllerInput[];
+	frame: Frame;
+	// self?: Entity;
+	entity: Entity; // TODO: replace entity with self?
 	stage: PyramidStage;
+	camera: unknown;
 	globals: Globals;
+	scene: THREE.Scene;
+	world: RAPIER.World;
+	audio: unknown;
+	inputs: ControllerInput[]; // TODO: controller input should be a map of "player" controllers
 }
 
-export interface SetupInterface {
+export interface LoopInterface extends BaseGameEntityInterface {
+	spawn: unknown; // TODO: what's the difference between spawn and create? Synchronicity?
+}
+
+export interface SetupInterface extends BaseGameEntityInterface {
 	commands: {
-		create: Function;
-	},
-	globals: Globals;
+		create: Function; // TODO: this should be moved out
+	};
 }
 
 interface GameOptions {
@@ -27,6 +39,11 @@ interface GameOptions {
 	setup: ({ }: SetupInterface) => void;
 	globals: Globals;
 	stages: Function[];
+}
+
+export interface PyramidGameEntity {
+	loop: (params: Partial<LoopInterface>) => void;
+	setup: (params: Partial<SetupInterface>) => void;
 }
 
 function Game({ app, stages = [] }: { app: HTMLElement | string, stages?: Function[] }) {
