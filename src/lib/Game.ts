@@ -8,42 +8,48 @@ import Gamepad, { ControllerInput } from './Gamepad';
 import { Clock } from 'three';
 import Globals from './Globals';
 import { Entity } from './Entities';
-import { Frame } from './Entities/Frame';
+import { PyramidCamera } from './Camera';
+import { PyramidActor } from './Entities/Actor';
 
-export interface BaseGameEntityInterface {
+// TODO: will this type "known partial" be necessary at all?
+// May come in handy for situations where we want to assume the property
+// is known but we don't want to enforce all the properties.
+type KnownPartial<T> = Partial<Record<keyof T, T[keyof T]>>;
+
+export interface PyramidParams {
 	ticks: number;
-	frame: Frame;
-	// self?: Entity;
-	entity: Entity; // TODO: replace entity with self?
+	frame: (timer: number, callback: Function) => void;
+	entity: Entity;
+	game: PyramidGame;
 	stage: PyramidStage;
-	camera: unknown;
+	camera: PyramidCamera;
 	globals: Globals;
 	scene: THREE.Scene;
 	world: RAPIER.World;
 	audio: unknown;
 	inputs: ControllerInput[]; // TODO: controller input should be a map of "player" controllers
-}
-
-export interface LoopInterface extends BaseGameEntityInterface {
-	spawn: unknown; // TODO: what's the difference between spawn and create? Synchronicity?
-}
-
-export interface SetupInterface extends BaseGameEntityInterface {
-	commands: {
-		create: Function; // TODO: this should be moved out
-	};
+	create: Function;
 }
 
 interface GameOptions {
-	loop: ({ }: LoopInterface) => void;
-	setup: ({ }: SetupInterface) => void;
+	loop: ({ }: PyramidParams) => void;
+	setup: ({ }: PyramidParams) => void;
 	globals: Globals;
 	stages: Function[];
 }
 
 export interface PyramidGameEntity {
-	loop: (params: Partial<LoopInterface>) => void;
-	setup: (params: Partial<SetupInterface>) => void;
+	loop: (params: PyramidParams) => void;
+	setup: (params: PyramidParams) => void;
+}
+
+export interface ActorParams extends PyramidParams {
+	entity: PyramidActor;
+}
+
+export interface GameActor {
+	loop: (params: ActorParams) => void;
+	setup: (params: ActorParams) => void;
 }
 
 function Game({ app, stages = [] }: { app: HTMLElement | string, stages?: Function[] }) {
@@ -70,7 +76,7 @@ function Game({ app, stages = [] }: { app: HTMLElement | string, stages?: Functi
 	}
 }
 
-class PyramidGame {
+export class PyramidGame {
 	stages: PyramidStage[] = [];
 	currentStage: number = 0;
 	menu?: Menu;
@@ -150,16 +156,14 @@ class PyramidGame {
 
 	async gameSetup() {
 		const commands = await Create(this.stage());
-		this.stage()._setup({
-			commands,
+		const gameSetupParameters = {
+			create: commands.create,
 			globals: this._globals,
 			camera: this.stage()._camera
-		})
-		this._setup({
-			commands,
-			globals: this._globals,
-			camera: this.stage()._camera
-		});
+		};
+
+		this.stage()._setup(gameSetupParameters);
+		this._setup(gameSetupParameters);
 	}
 
 	stage() {

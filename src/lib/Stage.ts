@@ -122,12 +122,12 @@ export class PyramidStage {
 		this.composer.addPass(new RenderPass(renderResolution, scene, this._camera.camera));
 	}
 
-	addChild(id: string, child: any) {
+	async addChild(id: string, child: any) {
 		if (child._setup) {
-			const commands = Create(this);
+			const commands = await Create(this);
 			child._setup({
 				entity: child,
-				commands
+				create: commands.create
 			});
 		}
 		this.children.set(id, child);

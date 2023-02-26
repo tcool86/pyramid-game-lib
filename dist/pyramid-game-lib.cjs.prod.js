@@ -298,16 +298,13 @@ class PyramidGame {
   }
   async gameSetup() {
     const commands = await Create(this.stage());
-    this.stage()._setup({
-      commands,
+    const gameSetupParameters = {
+      create: commands.create,
       globals: this._globals,
       camera: this.stage()._camera
-    });
-    this._setup({
-      commands,
-      globals: this._globals,
-      camera: this.stage()._camera
-    });
+    };
+    this.stage()._setup(gameSetupParameters);
+    this._setup(gameSetupParameters);
   }
   stage() {
     return this.stages[this.currentStage];
@@ -488,12 +485,12 @@ class PyramidStage {
     // TODO: the _camera.camera is a bit wierd. 🤷🏻‍♂️
     this.composer.addPass(new RenderPass(renderResolution, scene, this._camera.camera));
   }
-  addChild(id, child) {
+  async addChild(id, child) {
     if (child._setup) {
-      const commands = Create(this);
+      const commands = await Create(this);
       child._setup({
         entity: child,
-        commands
+        create: commands.create
       });
     }
     this.children.set(id, child);

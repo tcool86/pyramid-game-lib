@@ -37,7 +37,7 @@ export declare class PyramidStage {
     setupRenderer(): void;
     setupLighting(scene: Scene): void;
     setupCamera(scene: Scene): void;
-    addChild(id: string, child: any): void;
+    addChild(id: string, child: any): Promise<void>;
     update({ delta, inputs }: {
         delta: number;
         inputs: any;
