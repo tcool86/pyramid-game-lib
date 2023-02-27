@@ -7,10 +7,16 @@ import Globals from './Globals';
 import { Entity } from './Entities';
 import { PyramidCamera } from './Camera';
 import { PyramidActor } from './Entities/Actor';
-export interface PyramidParams {
+import { TriggerEntity } from './Entities/Triggers';
+interface GameOptions {
+    loop: (params: PyramidParamsBase<PyramidGame>) => void;
+    setup: (params: PyramidParamsBase<PyramidGame>) => void;
+    globals: Globals;
+    stages: Function[];
+}
+export interface PyramidParamsBase<T> {
     ticks: number;
     frame: (timer: number, callback: Function) => void;
-    entity: Entity;
     game: PyramidGame;
     stage: PyramidStage;
     camera: PyramidCamera;
@@ -20,23 +26,14 @@ export interface PyramidParams {
     audio: unknown;
     inputs: ControllerInput[];
     create: Function;
+    entity: T;
 }
-interface GameOptions {
-    loop: ({}: PyramidParams) => void;
-    setup: ({}: PyramidParams) => void;
-    globals: Globals;
-    stages: Function[];
-}
-export interface PyramidGameEntity {
-    loop: (params: PyramidParams) => void;
-    setup: (params: PyramidParams) => void;
-}
-export interface ActorParams extends PyramidParams {
-    entity: PyramidActor;
-}
-export interface GameActor {
-    loop: (params: ActorParams) => void;
-    setup: (params: ActorParams) => void;
+export declare type GameParams = PyramidParamsBase<Entity>;
+export declare type GameTrigger = PyramidGameEntity<TriggerEntity>;
+export declare type GameActor = PyramidGameEntity<PyramidActor>;
+export interface PyramidGameEntity<T> {
+    loop: (params: PyramidParamsBase<T>) => void;
+    setup: (params: PyramidParamsBase<T>) => void;
 }
 declare function Game({ app, stages }: {
     app: HTMLElement | string;

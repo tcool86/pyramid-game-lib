@@ -10,16 +10,24 @@ import Globals from './Globals';
 import { Entity } from './Entities';
 import { PyramidCamera } from './Camera';
 import { PyramidActor } from './Entities/Actor';
+import { TriggerEntity } from './Entities/Triggers';
 
 // TODO: will this type "known partial" be necessary at all?
 // May come in handy for situations where we want to assume the property
 // is known but we don't want to enforce all the properties.
 type KnownPartial<T> = Partial<Record<keyof T, T[keyof T]>>;
 
-export interface PyramidParams {
+// TODO: Game options should be generalized
+interface GameOptions {
+	loop: (params: PyramidParamsBase<PyramidGame>) => void;
+	setup: (params: PyramidParamsBase<PyramidGame>) => void;
+	globals: Globals;
+	stages: Function[];
+}
+
+export interface PyramidParamsBase<T> {
 	ticks: number;
 	frame: (timer: number, callback: Function) => void;
-	entity: Entity;
 	game: PyramidGame;
 	stage: PyramidStage;
 	camera: PyramidCamera;
@@ -29,27 +37,16 @@ export interface PyramidParams {
 	audio: unknown;
 	inputs: ControllerInput[]; // TODO: controller input should be a map of "player" controllers
 	create: Function;
+	entity: T;
 }
 
-interface GameOptions {
-	loop: ({ }: PyramidParams) => void;
-	setup: ({ }: PyramidParams) => void;
-	globals: Globals;
-	stages: Function[];
-}
+export type GameParams = PyramidParamsBase<Entity>;
+export type GameTrigger = PyramidGameEntity<TriggerEntity>;
+export type GameActor = PyramidGameEntity<PyramidActor>;
 
-export interface PyramidGameEntity {
-	loop: (params: PyramidParams) => void;
-	setup: (params: PyramidParams) => void;
-}
-
-export interface ActorParams extends PyramidParams {
-	entity: PyramidActor;
-}
-
-export interface GameActor {
-	loop: (params: ActorParams) => void;
-	setup: (params: ActorParams) => void;
+export interface PyramidGameEntity<T> {
+	loop: (params: PyramidParamsBase<T>) => void;
+	setup: (params: PyramidParamsBase<T>) => void;
 }
 
 function Game({ app, stages = [] }: { app: HTMLElement | string, stages?: Function[] }) {
