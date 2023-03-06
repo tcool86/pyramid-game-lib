@@ -172,6 +172,13 @@ class Globals {
     return this.history.get();
   }
 }
+const setGlobals = state => {
+  return Globals.getInstance().setState(state);
+};
+const updateGlobals = state => {
+  return Globals.getInstance().update(state);
+};
+const globals = Globals.getInstance();
 
 function Game({
   app,
@@ -1215,7 +1222,9 @@ const Pyramid = {
   Debug,
   Game,
   Gamepad,
-  Globals,
+  Globals: globals,
+  updateGlobals,
+  setGlobals,
   Menu,
   Stage,
   Entity: {

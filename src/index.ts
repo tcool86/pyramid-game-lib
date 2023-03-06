@@ -1,7 +1,7 @@
 import Debug from './lib/Debug';
 import Game, { PyramidGameEntity } from './lib/Game';
 import Gamepad from './lib/Gamepad';
-import Globals from './lib/Globals';
+import { globals, setGlobals, updateGlobals } from './lib/Globals';
 import Menu from './lib/Menu';
 import { Stage } from './lib/Stage';
 import Util from './lib/Util';
@@ -15,7 +15,9 @@ const Pyramid = {
 	Debug,
 	Game,
 	Gamepad,
-	Globals,
+	Globals: globals,
+	updateGlobals,
+	setGlobals,
 	Menu,
 	Stage,
 	Entity: { Actor, Collision, Materials, Box, Sphere, Trigger },

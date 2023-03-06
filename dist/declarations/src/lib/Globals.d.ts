@@ -11,3 +11,6 @@ export default class Globals {
     update(state: GameState): void;
     current(): any;
 }
+export declare const setGlobals: (state: GameState) => void;
+export declare const updateGlobals: (state: GameState) => void;
+export declare const globals: Globals;

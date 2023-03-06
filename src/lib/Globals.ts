@@ -37,3 +37,13 @@ export default class Globals {
 		return this.history.get();
 	}
 }
+
+export const setGlobals = (state: GameState) => {
+	return Globals.getInstance().setState(state);
+};
+
+export const updateGlobals = (state: GameState) => {
+	return Globals.getInstance().update(state);
+}
+
+export const globals = Globals.getInstance();
