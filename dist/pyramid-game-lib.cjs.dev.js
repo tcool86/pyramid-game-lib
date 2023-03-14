@@ -396,11 +396,10 @@ class PyramidCamera {
     this.camera.position.z = 20;
     this.camera.position.y = 6 * Math.tan(Math.PI / 3);
     this.follow = null;
-    // const controls = new OrbitControls(camera, renderer.domElement)
-    // controls.target.set(0, 0, 0);
-    // controls.update();
+    this.cameraRig = new THREE.Object3D();
+    this.cameraRig.position.set(0, 5, 10);
+    this.cameraRig.add(this.camera);
   }
-
   update() {
     if (this.follow) {
       this.moveFollowCamera();
@@ -418,6 +417,7 @@ class PyramidCamera {
       z: 0
     };
     const entityPosition = new THREE.Vector3(x, y, z);
+    this.cameraRig.position.set(x, y, z);
     this.camera.lookAt(entityPosition);
   }
   followEntity(entity) {

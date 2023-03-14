@@ -1,6 +1,6 @@
 import RAPIER, { RigidBodyType, Vector3 as Vector3$2 } from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
-import { Clock, WebGLRenderTarget, PerspectiveCamera, Vector3 as Vector3$1, Scene, Color, Vector2 as Vector2$1, WebGLRenderer, AmbientLight, DirectionalLight, PointLight } from 'three';
+import { Clock, WebGLRenderTarget, PerspectiveCamera, Object3D, Vector3 as Vector3$1, Scene, Color, Vector2 as Vector2$1, WebGLRenderer, AmbientLight, DirectionalLight, PointLight } from 'three';
 import { History } from 'stateshot';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { Pass, FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass';
@@ -370,11 +370,10 @@ class PyramidCamera {
     this.camera.position.z = 20;
     this.camera.position.y = 6 * Math.tan(Math.PI / 3);
     this.follow = null;
-    // const controls = new OrbitControls(camera, renderer.domElement)
-    // controls.target.set(0, 0, 0);
-    // controls.update();
+    this.cameraRig = new Object3D();
+    this.cameraRig.position.set(0, 5, 10);
+    this.cameraRig.add(this.camera);
   }
-
   update() {
     if (this.follow) {
       this.moveFollowCamera();
@@ -392,6 +391,7 @@ class PyramidCamera {
       z: 0
     };
     const entityPosition = new Vector3$1(x, y, z);
+    this.cameraRig.position.set(x, y, z);
     this.camera.lookAt(entityPosition);
   }
   followEntity(entity) {

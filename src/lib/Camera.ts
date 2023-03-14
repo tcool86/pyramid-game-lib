@@ -1,8 +1,9 @@
-import { Vector2, Camera, PerspectiveCamera, Vector3 } from 'three';
+import { Vector2, Camera, PerspectiveCamera, Vector3, Object3D } from 'three';
 import { Entity } from './Entities';
 // import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 export class PyramidCamera {
+	cameraRig: Object3D;
 	camera: Camera;
 	follow: Entity | null;
 
@@ -12,9 +13,9 @@ export class PyramidCamera {
 		this.camera.position.z = 20;
 		this.camera.position.y = 6 * Math.tan(Math.PI / 3);
 		this.follow = null;
-		// const controls = new OrbitControls(camera, renderer.domElement)
-		// controls.target.set(0, 0, 0);
-		// controls.update();
+		this.cameraRig = new Object3D();
+		this.cameraRig.position.set(0, 5, 10);
+		this.cameraRig.add(this.camera);
 	}
 
 	update() {
@@ -27,7 +28,9 @@ export class PyramidCamera {
 		const entity = this.follow;
 		const { x, y, z } = entity?.body.translation() || { x: 0, y: 0, z: 0 };
 		const entityPosition = new Vector3(x, y, z);
+		this.cameraRig.position.set(x, y, z);
 		this.camera.lookAt(entityPosition);
+
 	}
 
 	followEntity(entity: Entity) {
