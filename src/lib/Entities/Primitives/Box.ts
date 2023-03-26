@@ -5,11 +5,7 @@ import { CreationParameters } from '..';
 import { Color } from 'three';
 import { baseEntityCreation } from '../EntityCreation';
 
-export interface BoxOptions extends PrimitiveOptions {
-	width: number;
-	height: number;
-	depth: number;
-}
+export interface BoxOptions extends PrimitiveOptions { }
 
 export function Box(options?: Partial<BoxOptions>) {
 	return (target: any) => {
@@ -22,9 +18,7 @@ const boxDefaults: BoxOptions = {
 	debugColor: Color.NAMES.white,
 	showDebug: false,
 	position: new Vector3(0, 0, 0),
-	width: 1,
-	height: 1,
-	depth: 1,
+	size: new Vector3(1, 1, 1),
 	color: Color.NAMES.white,
 	texturePath: null,
 	textureSize: new Vector2(1, 1),
@@ -34,7 +28,7 @@ const boxDefaults: BoxOptions = {
 export function createBox(params: CreationParameters) {
 	const { entity, options, stage } = baseEntityCreation(params, boxDefaults);
 
-	const { width, height, depth } = options;
+	const { x: width, y: height, z: depth } = options.size;
 	const size = new Vector3(width, height, depth);
 
 	const position = options.position;

@@ -1106,9 +1106,7 @@ const boxDefaults = {
   debugColor: THREE.Color.NAMES.white,
   showDebug: false,
   position: new Vector3(0, 0, 0),
-  width: 1,
-  height: 1,
-  depth: 1,
+  size: new Vector3(1, 1, 1),
   color: THREE.Color.NAMES.white,
   texturePath: null,
   textureSize: new Vector2(1, 1),
@@ -1121,10 +1119,10 @@ function createBox(params) {
     stage
   } = baseEntityCreation(params, boxDefaults);
   const {
-    width,
-    height,
-    depth
-  } = options;
+    x: width,
+    y: height,
+    z: depth
+  } = options.size;
   const size = new Vector3(width, height, depth);
   const position = options.position;
   const color = options.color;
