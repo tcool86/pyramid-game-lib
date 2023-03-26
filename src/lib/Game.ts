@@ -61,7 +61,7 @@ function Game({ app, stages = [] }: { app: HTMLElement | string, stages?: Functi
 		pyramidInstance.ready.then(() => {
 			let appElement;
 			if (typeof app === 'string') {
-				appElement = document.querySelector<HTMLDivElement>('#app')!;
+				appElement = document.querySelector<HTMLDivElement>(app)!;
 			} else {
 				appElement = app;
 			}

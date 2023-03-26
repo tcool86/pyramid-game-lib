@@ -221,7 +221,7 @@ function Game({
     pyramidInstance.ready.then(() => {
       let appElement;
       if (typeof app === 'string') {
-        appElement = document.querySelector('#app');
+        appElement = document.querySelector(app);
       } else {
         appElement = app;
       }
