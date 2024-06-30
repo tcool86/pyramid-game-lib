@@ -1,10 +1,8 @@
-# Pyramid Game Lib
+# Pyramid Game Lib (Deprecated read below)
 
-A simple, easy-to-use library for 3D games and interactive media using the Vite build tool and TypeScript.
+**This library is now deprecated**
+Use the [zylem library](https://www.npmjs.com/package/@tcool86/zylem) instead
 
-## Disclaimer
-
-This is semi-actively being developed. Not all the features have been implemented and could change. Do *not* use this if you are looking for a high-performance game engine.
 
 ### Why Pyramid Game Lib?
 
