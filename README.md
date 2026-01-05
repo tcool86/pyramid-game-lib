@@ -1,8 +1,7 @@
 # Pyramid Game Lib (Deprecated read below)
 
 **This library is now deprecated**
-Use the [zylem library](https://www.npmjs.com/package/@tcool86/zylem) instead
-
+Use the [zylem library](https://www.npmjs.com/package/@zylem/game-lib) instead
 
 ### Why Pyramid Game Lib?
 
@@ -35,8 +34,7 @@ All examples are a work in progress.
 
 > Live Demo: <https://vite-production-b29b.up.railway.app/>
 
-https://user-images.githubusercontent.com/2002449/211242929-f62f7b12-062b-4caa-8fa6-a40dac66eabd.mov
-
+<https://user-images.githubusercontent.com/2002449/211242929-f62f7b12-062b-4caa-8fa6-a40dac66eabd.mov>
 
 ### Sample Game (Basic)
 
